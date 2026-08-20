@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Email Template Builder</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #18181b;
+            --primary-hover: #27272a;
+            --bg-color: #f4f4f5;
+            --card-bg: #ffffff;
+            --text-main: #09090b;
+            --text-muted: #71717a;
+            --border-color: #e4e4e7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Control Panel */
+        .sidebar {
+            width: 420px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            background: #ffffff;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .accordion-section {
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .accordion-title {
+            background: #fafafa;
+            padding: 14px 16px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .accordion-body {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            background: #fafafa;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        /* Color Scheme Grid */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .color-option {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover, .color-option.active {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .color-preview {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .color-preview span {
+            width: 50%;
+            height: 100%;
+        }
+
+        .color-name {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* Custom Input Groups */
+        .custom-box {
+            background: #fafafa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
+        .input-inline-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .input-inline-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-inline-group label {
+            width: 110px;
+            margin-bottom: 0;
+            font-size: 0.75rem;
+        }
+
+        .color-picker-input {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .size-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Alignment Buttons */
+        .align-btn-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .align-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            background: #fafafa;
+            color: var(--text-main);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .align-btn:hover, .align-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        /* Layout Grid Options & Custom Input */
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .layout-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .layout-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            background: #fafafa;
+            color: var(--text-main);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .layout-btn:hover, .layout-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .custom-layout-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .custom-layout-input input {
+            width: 70px;
+            text-align: center;
+        }
+
+        /* Cards Container in Sidebar */
+        .card-item {
+            background: #fafafa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .card-item .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .card-item .remove-btn:hover {
+            opacity: 1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: var(--primary); color: #ffffff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: #fafafa; }
+        .btn-dark { background: #09090b; color: #ffffff; }
+        .btn-dark:hover { background: #27272a; }
+        .btn-full { width: 100%; }
+
+        /* Main Content / Preview Area */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f4f4f5;
+        }
+
+        .top-bar {
+            background: #ffffff;
+            padding: 16px 32px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar h1 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .preview-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .email-container {
+            width: 100%;
+            max-width: 650px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            align-self: flex-start;
+        }
+
+        /* Rendered Email Styling */
+        .email-header {
+            padding: 32px 24px;
+        }
+
+        .email-header img {
+            max-width: 100%;
+            height: auto;
+            max-height: 240px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .email-header h1 {
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .email-header p {
+            line-height: 1.6;
+            opacity: 0.85;
+        }
+
+        .email-body {
+            padding: 24px;
+            transition: background 0.2s;
+        }
+
+        .content-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        @media (max-width: 650px) {
+            .content-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .content-card {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .content-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
+
+        .content-card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .content-card-body h3 {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .content-card-body p {
+            line-height: 1.5;
+            margin-bottom: 16px;
+            flex: 1;
+        }
+
+        .content-card-body .btn-wrapper {
+            display: block;
+        }
+
+        .content-card-body a {
+            display: inline-block;
+            text-align: center;
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .email-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .email-footer a {
+            margin: 0 6px;
+            text-decoration: underline;
+        }
+
+        .copyright {
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 9, 11, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 650px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            background: #ffffff;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 { font-size: 0.95rem; font-weight: 600; }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            background: #fafafa;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            height: 320px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #ffffff;
+            color: #09090b;
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Controls -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-pen-nib"></i> <span>สร้างอีเมลข่าวสาร</span></h2>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- Theme & Layout Section -->
+            <div class="accordion-section">
+                <div class="accordion-title">
+                    <span><i class="fa-solid fa-sliders"></i> ธีมสีและเลย์เอาต์</span>
+                </div>
+                <div class="accordion-body">
+                    <!-- Preset Color Schemes -->
+                    <div class="form-group">
+                        <label>เลือกชุดโทนสี (Preset):</label>
+                        <div class="color-grid" id="colorPickerGrid"></div>
+                    </div>
+
+                    <!-- Custom Color Input -->
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-palette"></i> กำหนดสีพื้นหลังส่วนต่างๆ (Custom):</label>
+                        <div class="custom-box">
+                            <div class="input-inline-group">
+                                <label>สีพื้นหลังส่วนหัว:</label>
+                                <input type="color" id="pickerHeaderBg" class="color-picker-input" onchange="syncColorInput('headerBg', this.value)">
+                                <input type="text" id="hexHeaderBg" class="form-control" placeholder="#18181b" oninput="updateCustomColor('headerBg', this.value)">
+                            </div>
+                            <div class="input-inline-group">
+                                <label>สีพื้นหลังเนื้อหาหลัก:</label>
+                                <input type="color" id="pickerBodyBg" class="color-picker-input" onchange="syncColorInput('bodyBg', this.value)">
+                                <input type="text" id="hexBodyBg" class="form-control" placeholder="#ffffff" oninput="updateCustomColor('bodyBg', this.value)">
+                            </div>
+                            <div class="input-inline-group">
+                                <label>สีปุ่มกด (Button):</label>
+                                <input type="color" id="pickerBtnBg" class="color-picker-input" onchange="syncColorInput('btnBg', this.value)">
+                                <input type="text" id="hexBtnBg" class="form-control" placeholder="#18181b" oninput="updateCustomColor('btnBg', this.value)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid Layout Input -->
+                    <div class="form-group">
+                        <label>จำนวนกล่องเนื้อหาต่อแถว (ส่วนที่ 2):</label>
+                        <div class="layout-container">
+                            <div class="layout-options">
+                                <button class="layout-btn active" onclick="setLayout(1)">1</button>
+                                <button class="layout-btn" onclick="setLayout(2)">2</button>
+                                <button class="layout-btn" onclick="setLayout(3)">3</button>
+                                <button class="layout-btn" onclick="setLayout(4)">4</button>
+                            </div>
+                            <div class="custom-layout-input">
+                                <span>ระบุตัวเลขเอง:</span>
+                                <input type="number" id="customColInput" class="form-control" min="1" max="6" value="2" oninput="setLayout(parseInt(this.value) || 1)">
+                                <span>คอลัมน์/แถว</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: Header -->
+            <div class="accordion-section">
+                <div class="accordion-title">
+                    <span><i class="fa-solid fa-heading"></i> ส่วนที่ 1: ส่วนหัวของอีเมล</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="form-group">
+                        <label>การจัดวางข้อความ (Align):</label>
+                        <div class="align-btn-group">
+                            <button class="align-btn active" id="headerAlignLeft" onclick="setHeaderAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                            <button class="align-btn" id="headerAlignCenter" onclick="setHeaderAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                            <button class="align-btn" id="headerAlignRight" onclick="setHeaderAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สีตัวอักษรส่วนหัว:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerHeaderTextColor" class="color-picker-input" value="#ffffff" onchange="syncTextColor('headerText', this.value)">
+                            <input type="text" id="hexHeaderTextColor" class="form-control" value="#ffffff" oninput="updateTextColor('headerText', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดตัวอักษรส่วนหัว (px):</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">หัวข้อหลัก:</label>
+                                <input type="number" id="headerTitleSize" class="form-control" value="24" min="12" max="60" oninput="updateHeader()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">เนื้อหาเกริ่นนำ:</label>
+                                <input type="number" id="headerDescSize" class="form-control" value="15" min="10" max="36" oninput="updateHeader()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ลิงก์รูปภาพปก (URL) หรืออัปโหลด:</label>
+                        <input type="text" class="form-control" id="headerImgUrl" placeholder="https://..." oninput="updateHeader()">
+                        <input type="file" class="form-control" id="headerImgFile" accept="image/*" style="margin-top:6px;" onchange="handleFileUpload(event, 'headerImgUrl', updateHeader)">
+                    </div>
+                    <div class="form-group">
+                        <label>หัวข้อเรื่องหลัก:</label>
+                        <input type="text" class="form-control" id="headerTitle" value="จดหมายข่าวห้องสมุดประจำเดือน" oninput="updateHeader()">
+                    </div>
+                    <div class="form-group">
+                        <label>เนื้อหาเกริ่นนำ:</label>
+                        <textarea class="form-control" id="headerDesc" oninput="updateHeader()">ยินดีต้อนรับสู่จดหมายข่าวสารดิจิทัล แหล่งรวมข้อมูล ความรู้ และกิจกรรมใหม่ๆ สำหรับสมาชิกทุกท่าน</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Content Cards -->
+            <div class="accordion-section">
+                <div class="accordion-title">
+                    <span><i class="fa-solid fa-layer-group"></i> ส่วนที่ 2: ส่วนเนื้อหาหลัก</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="form-group">
+                        <label>การจัดวางข้อความในกล่อง (Align):</label>
+                        <div class="align-btn-group">
+                            <button class="align-btn active" id="bodyAlignLeft" onclick="setBodyAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                            <button class="align-btn" id="bodyAlignCenter" onclick="setBodyAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                            <button class="align-btn" id="bodyAlignRight" onclick="setBodyAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สีตัวอักษรหัวข้อกล่องเนื้อหา:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerCardTitleColor" class="color-picker-input" value="#09090b" onchange="syncTextColor('cardTitle', this.value)">
+                            <input type="text" id="hexCardTitleColor" class="form-control" value="#09090b" oninput="updateTextColor('cardTitle', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สีตัวอักษรเนื้อหากล่อง:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerCardDescColor" class="color-picker-input" value="#71717a" onchange="syncTextColor('cardDesc', this.value)">
+                            <input type="text" id="hexCardDescColor" class="form-control" value="#71717a" oninput="updateTextColor('cardDesc', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดตัวอักษรในกล่อง (px):</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">หัวข้อกล่อง:</label>
+                                <input type="number" id="cardTitleSize" class="form-control" value="16" min="12" max="40" oninput="updateBody()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">รายละเอียด:</label>
+                                <input type="number" id="cardDescSize" class="form-control" value="13" min="10" max="30" oninput="updateBody()">
+                            </div>
+                        </div>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 16px 0;">
+                    <div id="cardList"></div>
+                    <button class="btn btn-secondary btn-full" onclick="addCard()"><i class="fa-solid fa-plus"></i> เพิ่มกล่องเนื้อหา</button>
+                </div>
+            </div>
+
+            <!-- Section 3: Footer & Contact -->
+            <div class="accordion-section">
+                <div class="accordion-title">
+                    <span><i class="fa-solid fa-globe"></i> ส่วนที่ 3: ส่วนท้ายและการติดต่อ</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="form-group">
+                        <label>การจัดวางข้อความ (Align):</label>
+                        <div class="align-btn-group">
+                            <button class="align-btn" id="footerAlignLeft" onclick="setFooterAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                            <button class="align-btn active" id="footerAlignCenter" onclick="setFooterAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                            <button class="align-btn" id="footerAlignRight" onclick="setFooterAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สีตัวอักษรส่วนท้าย:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerFooterTextColor" class="color-picker-input" value="#ffffff" onchange="syncTextColor('footerText', this.value)">
+                            <input type="text" id="hexFooterTextColor" class="form-control" value="#ffffff" oninput="updateTextColor('footerText', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดตัวอักษรส่วนท้าย (px):</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">ชื่อหน่วยงาน/ลิงก์:</label>
+                                <input type="number" id="footerTextSize" class="form-control" value="13" min="10" max="28" oninput="updateFooter()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">Copyright:</label>
+                                <input type="number" id="footerCopyrightSize" class="form-control" value="11" min="8" max="24" oninput="updateFooter()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อหน่วยงาน / ส่วนท้าย:</label>
+                        <input type="text" class="form-control" id="footerOrg" value="Library and Learning Space" oninput="updateFooter()">
+                    </div>
+                    <div class="form-group">
+                        <label>แนบลิงก์การติดต่อ (ชื่อ|URL แยกด้วย ,):</label>
+                        <input type="text" class="form-control" id="footerLinks" value="เว็บไซต์|https://example.com, ติดต่อเรา|https://example.com/contact" oninput="updateFooter()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Area -->
+    <div class="main-container">
+        <div class="top-bar">
+            <h1><i class="fa-regular fa-eye"></i> ตัวอย่างอีเมล (Live Preview)</h1>
+            <div class="action-btns">
+                <button class="btn btn-secondary" onclick="showHtmlModal()"><i class="fa-solid fa-code"></i> คัดลอก HTML</button>
+                <button class="btn btn-dark" onclick="downloadHtml()"><i class="fa-solid fa-download"></i> ดาวน์โหลด .html</button>
+            </div>
+        </div>
+
+        <div class="preview-wrapper">
+            <div class="email-container" id="emailContainer">
+                <div class="email-header" id="renderHeader"></div>
+                <div class="email-body" id="renderEmailBody">
+                    <div class="content-grid" id="renderBody"></div>
+                </div>
+                <div class="email-footer" id="renderFooter"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for HTML Code -->
+    <div class="modal" id="htmlModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>โค้ด HTML สำหรับนำไปใช้ส่งอีเมล</h3>
+                <span style="cursor:pointer; opacity: 0.6;" onclick="closeHtmlModal()"><i class="fa-solid fa-xmark"></i></span>
+            </div>
+            <div class="modal-body">
+                <textarea id="htmlCodeOutput" readonly></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeHtmlModal()">ปิด</button>
+                <button class="btn btn-dark" onclick="copyToClipboard()">คัดลอกโค้ด</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preset Color Schemes
+        const colorSchemes = [
+            { id: 'minimal-dark', name: 'Monochrome Dark', headerBg: '#18181b', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fafafa', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#18181b', btnText: '#ffffff', footerText: '#ffffff' },
+            { id: 'minimal-gray', name: 'Soft Slate', headerBg: '#f4f4f5', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#27272a', btnText: '#ffffff', footerText: '#09090b' },
+            { id: 'minimal-blue', name: 'Deep Navy', headerBg: '#0f172a', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#ffffff' },
+            { id: 'minimal-sage', name: 'Warm Sage', headerBg: '#2e3a31', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f6f7f6', cardTitle: '#1c241e', cardDesc: '#5c6b60', btnBg: '#2e3a31', btnText: '#ffffff', footerText: '#ffffff' },
+            { id: 'minimal-sand', name: 'Warm Beige', headerBg: '#fefcf8', headerText: '#1c1917', bodyBg: '#fdfbf7', cardBg: '#fafaf9', cardTitle: '#1c1917', cardDesc: '#78716c', btnBg: '#292524', btnText: '#ffffff', footerText: '#1c1917' },
+            { id: 'minimal-clean', name: 'Pure White', headerBg: '#ffffff', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#09090b', btnText: '#ffffff', footerText: '#09090b' },
+            { id: 'minimal-charcoal', name: 'Charcoal', headerBg: '#334155', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#1e293b', cardDesc: '#64748b', btnBg: '#334155', btnText: '#ffffff', footerText: '#ffffff' },
+            { id: 'minimal-taupe', name: 'Neutral Taupe', headerBg: '#44403c', headerText: '#ffffff', bodyBg: '#fafaf9', cardBg: '#ffffff', cardTitle: '#292524', cardDesc: '#78716c', btnBg: '#44403c', btnText: '#ffffff', footerText: '#ffffff' },
+            { id: 'minimal-olive', name: 'Muted Olive', headerBg: '#3f4e4f', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f5f5f5', cardTitle: '#2c3639', cardDesc: '#6a787a', btnBg: '#2c3639', btnText: '#ffffff', footerText: '#ffffff' },
+            { id: 'minimal-ash', name: 'Ash Gray', headerBg: '#e2e8f0', headerText: '#0f172a', bodyBg: '#f8fafc', cardBg: '#ffffff', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#0f172a' },
+            { id: 'minimal-chocolate', name: 'Soft Espresso', headerBg: '#27201d', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fcfbfb', cardTitle: '#27201d', cardDesc: '#786c66', btnBg: '#27201d', btnText: '#ffffff', footerText: '#ffffff' }
+        ];
+
+        let activeScheme = {...colorSchemes[0]};
+        let currentColumns = 2;
+
+        // Alignments
+        let headerAlign = 'left';
+        let bodyAlign = 'left';
+        let footerAlign = 'center';
+
+        let cards = [
+            {
+                img: 'https://picsum.photos/400/200?random=1',
+                title: 'บริการหนังสืออิเล็กทรอนิกส์ (e-Books)',
+                desc: 'เข้าถึงคลังหนังสือดิจิทัลมากกว่า 10,000 เล่ม อ่านได้ทุกที่ทุกเวลาตลอด 24 ชั่วโมง',
+                btnText: 'อ่านเพิ่มเติม',
+                url: 'https://example.com/ebooks'
+            },
+            {
+                img: 'https://picsum.photos/400/200?random=2',
+                title: 'พื้นที่การเรียนรู้ร่วมกัน (Co-Working Space)',
+                desc: 'สำรองห้องประชุมกลุ่มย่อยและพื้นที่สำหรับการทำกิจกรรมการเรียนรู้แบบครบวงจร',
+                btnText: 'จองพื้นที่',
+                url: 'https://example.com/booking'
+            }
+        ];
+
+        window.onload = function() {
+            renderColorPickers();
+            renderCardInputs();
+            syncCustomColorInputs();
+            updateHeader();
+            updateBody();
+            updateFooter();
+            applyTheme();
+        };
+
+        function renderColorPickers() {
+            const grid = document.getElementById('colorPickerGrid');
+            grid.innerHTML = '';
+            colorSchemes.forEach((scheme) => {
+                const option = document.createElement('div');
+                option.className = `color-option ${scheme.id === activeScheme.id ? 'active' : ''}`;
+                option.onclick = () => selectColorScheme(scheme);
+                option.innerHTML = `
+                    <div class="color-preview">
+                        <span style="background: ${scheme.headerBg}"></span>
+                        <span style="background: ${scheme.btnBg}"></span>
+                    </div>
+                    <span class="color-name">${scheme.name}</span>
+                `;
+                grid.appendChild(option);
+            });
+        }
+
+        function selectColorScheme(scheme) {
+            activeScheme = {...scheme};
+            renderColorPickers();
+            syncCustomColorInputs();
+            applyTheme();
+        }
+
+        function syncCustomColorInputs() {
+            document.getElementById('pickerHeaderBg').value = normalizeHex(activeScheme.headerBg);
+            document.getElementById('hexHeaderBg').value = activeScheme.headerBg;
+
+            document.getElementById('pickerBodyBg').value = normalizeHex(activeScheme.bodyBg);
+            document.getElementById('hexBodyBg').value = activeScheme.bodyBg;
+
+            document.getElementById('pickerBtnBg').value = normalizeHex(activeScheme.btnBg);
+            document.getElementById('hexBtnBg').value = activeScheme.btnBg;
+
+            document.getElementById('pickerHeaderTextColor').value = normalizeHex(activeScheme.headerText);
+            document.getElementById('hexHeaderTextColor').value = activeScheme.headerText;
+
+            document.getElementById('pickerCardTitleColor').value = normalizeHex(activeScheme.cardTitle);
+            document.getElementById('hexCardTitleColor').value = activeScheme.cardTitle;
+
+            document.getElementById('pickerCardDescColor').value = normalizeHex(activeScheme.cardDesc);
+            document.getElementById('hexCardDescColor').value = activeScheme.cardDesc;
+
+            document.getElementById('pickerFooterTextColor').value = normalizeHex(activeScheme.footerText);
+            document.getElementById('hexFooterTextColor').value = activeScheme.footerText;
+        }
+
+        function syncColorInput(key, val) {
+            if (key === 'headerBg') {
+                document.getElementById('hexHeaderBg').value = val;
+                activeScheme.headerBg = val;
+            } else if (key === 'bodyBg') {
+                document.getElementById('hexBodyBg').value = val;
+                activeScheme.bodyBg = val;
+            } else if (key === 'btnBg') {
+                document.getElementById('hexBtnBg').value = val;
+                activeScheme.btnBg = val;
+            }
+            activeScheme.id = 'custom';
+            renderColorPickers();
+            applyTheme();
+        }
+
+        function updateCustomColor(key, val) {
+            if (key === 'headerBg') {
+                activeScheme.headerBg = val;
+                if (isValidHex(val)) document.getElementById('pickerHeaderBg').value = val;
+            } else if (key === 'bodyBg') {
+                activeScheme.bodyBg = val;
+                if (isValidHex(val)) document.getElementById('pickerBodyBg').value = val;
+            } else if (key === 'btnBg') {
+                activeScheme.btnBg = val;
+                if (isValidHex(val)) document.getElementById('pickerBtnBg').value = val;
+            }
+            activeScheme.id = 'custom';
+            renderColorPickers();
+            applyTheme();
+        }
+
+        function syncTextColor(key, val) {
+            if (key === 'headerText') {
+                document.getElementById('hexHeaderTextColor').value = val;
+                activeScheme.headerText = val;
+                updateHeader();
+            } else if (key === 'cardTitle') {
+                document.getElementById('hexCardTitleColor').value = val;
+                activeScheme.cardTitle = val;
+                updateBody();
+            } else if (key === 'cardDesc') {
+                document.getElementById('hexCardDescColor').value = val;
+                activeScheme.cardDesc = val;
+                updateBody();
+            } else if (key === 'footerText') {
+                document.getElementById('hexFooterTextColor').value = val;
+                activeScheme.footerText = val;
+                updateFooter();
+            }
+        }
+
+        function updateTextColor(key, val) {
+            if (key === 'headerText') {
+                activeScheme.headerText = val;
+                if (isValidHex(val)) document.getElementById('pickerHeaderTextColor').value = val;
+                updateHeader();
+            } else if (key === 'cardTitle') {
+                activeScheme.cardTitle = val;
+                if (isValidHex(val)) document.getElementById('pickerCardTitleColor').value = val;
+                updateBody();
+            } else if (key === 'cardDesc') {
+                activeScheme.cardDesc = val;
+                if (isValidHex(val)) document.getElementById('pickerCardDescColor').value = val;
+                updateBody();
+            } else if (key === 'footerText') {
+                activeScheme.footerText = val;
+                if (isValidHex(val)) document.getElementById('pickerFooterTextColor').value = val;
+                updateFooter();
+            }
+        }
+
+        /* Alignment Functions */
+        function setHeaderAlign(align) {
+            headerAlign = align;
+            ['left', 'center', 'right'].forEach(a => {
+                document.getElementById(`headerAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            });
+            updateHeader();
+        }
+
+        function setBodyAlign(align) {
+            bodyAlign = align;
+            ['left', 'center', 'right'].forEach(a => {
+                document.getElementById(`bodyAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            });
+            updateBody();
+        }
+
+        function setFooterAlign(align) {
+            footerAlign = align;
+            ['left', 'center', 'right'].forEach(a => {
+                document.getElementById(`footerAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            });
+            updateFooter();
+        }
+
+        function isValidHex(hex) {
+            return /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+        }
+
+        function normalizeHex(hex) {
+            return isValidHex(hex) ? hex : '#18181b';
+        }
+
+        function applyTheme() {
+            const header = document.getElementById('renderHeader');
+            const renderEmailBody = document.getElementById('renderEmailBody');
+            const footer = document.getElementById('renderFooter');
+
+            header.style.background = activeScheme.headerBg;
+            renderEmailBody.style.background = activeScheme.bodyBg || '#ffffff';
+            footer.style.background = activeScheme.headerBg;
+
+            updateHeader();
+            updateBody();
+            updateFooter();
+        }
+
+        function setLayout(cols) {
+            currentColumns = Math.max(1, cols);
+            document.getElementById('customColInput').value = currentColumns;
+            
+            document.querySelectorAll('.layout-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx + 1 === currentColumns);
+            });
+
+            const renderBody = document.getElementById('renderBody');
+            renderBody.style.gridTemplateColumns = `repeat(${currentColumns}, 1fr)`;
+        }
+
+        function handleFileUpload(event, targetInputId, callback) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(targetInputId).value = e.target.result;
+                    callback();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateHeader() {
+            const imgUrl = document.getElementById('headerImgUrl').value || 'https://picsum.photos/700/250?random=header';
+            const title = document.getElementById('headerTitle').value;
+            const desc = document.getElementById('headerDesc').value;
+
+            const titleSize = document.getElementById('headerTitleSize').value || 24;
+            const descSize = document.getElementById('headerDescSize').value || 15;
+
+            const header = document.getElementById('renderHeader');
+            header.style.textAlign = headerAlign;
+            header.style.color = activeScheme.headerText;
+
+            header.innerHTML = `
+                ${imgUrl ? `<img src="${imgUrl}" alt="Header Image">` : ''}
+                <h1 style="color: ${activeScheme.headerText}; font-size: ${titleSize}px;">${title}</h1>
+                <p style="color: ${activeScheme.headerText}; font-size: ${descSize}px;">${desc}</p>
+            `;
+        }
+
+        function renderCardInputs() {
+            const list = document.getElementById('cardList');
+            list.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-item';
+                cardDiv.innerHTML = `
+                    <span class="remove-btn" onclick="removeCard(${index})"><i class="fa-solid fa-trash"></i></span>
+                    <strong style="font-size:0.8rem; display:block; margin-bottom:8px; color: var(--text-muted);">กล่องเนื้อหาที่ ${index + 1}</strong>
+                    <div class="form-group">
+                        <label>ลิงก์รูปภาพปก/อัปโหลด:</label>
+                        <input type="text" class="form-control" value="${card.img}" oninput="updateCardData(${index}, 'img', this.value)">
+                        <input type="file" class="form-control" accept="image/*" style="margin-top:4px;" onchange="handleCardFileUpload(event, ${index})">
+                    </div>
+                    <div class="form-group">
+                        <label>หัวข้อเรื่อง:</label>
+                        <input type="text" class="form-control" value="${card.title}" oninput="updateCardData(${index}, 'title', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>เนื้อหาเกริ่นนำ:</label>
+                        <textarea class="form-control" oninput="updateCardData(${index}, 'desc', this.value)">${card.desc}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>ข้อความปุ่ม:</label>
+                        <input type="text" class="form-control" value="${card.btnText || 'อ่านเพิ่มเติม'}" oninput="updateCardData(${index}, 'btnText', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>ลิงก์เชื่อมโยง (URL):</label>
+                        <input type="text" class="form-control" value="${card.url}" oninput="updateCardData(${index}, 'url', this.value)">
+                    </div>
+                `;
+                list.appendChild(cardDiv);
+            });
+        }
+
+        function handleCardFileUpload(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    cards[index].img = e.target.result;
+                    renderCardInputs();
+                    updateBody();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addCard() {
+            cards.push({
+                img: `https://picsum.photos/400/200?random=${cards.length + 1}`,
+                title: 'หัวข้อใหม่ ' + (cards.length + 1),
+                desc: 'คำอธิบายเพิ่มเติมสำหรับกล่องเนื้อหานี้...',
+                btnText: 'อ่านเพิ่มเติม',
+                url: 'https://example.com'
+            });
+            renderCardInputs();
+            updateBody();
+        }
+
+        function removeCard(index) {
+            if (cards.length > 1) {
+                cards.splice(index, 1);
+                renderCardInputs();
+                updateBody();
+            } else {
+                alert('ต้องมีอย่างน้อย 1 กล่องเนื้อหา');
+            }
+        }
+
+        function updateCardData(index, key, value) {
+            cards[index][key] = value;
+            updateBody();
+        }
+
+        function updateBody() {
+            const cardTitleSize = document.getElementById('cardTitleSize').value || 16;
+            const cardDescSize = document.getElementById('cardDescSize').value || 13;
+
+            const renderBody = document.getElementById('renderBody');
+            renderBody.innerHTML = '';
+
+            cards.forEach(card => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'content-card';
+                cardEl.style.background = activeScheme.cardBg || '#ffffff';
+                cardEl.style.textAlign = bodyAlign;
+
+                cardEl.innerHTML = `
+                    ${card.img ? `<img src="${card.img}" alt="${card.title}">` : ''}
+                    <div class="content-card-body">
+                        <h3 style="color: ${activeScheme.cardTitle}; font-size: ${cardTitleSize}px;">${card.title}</h3>
+                        <p style="color: ${activeScheme.cardDesc}; font-size: ${cardDescSize}px;">${card.desc}</p>
+                        ${card.url ? `<div class="btn-wrapper"><a href="${card.url}" target="_blank" style="background: ${activeScheme.btnBg}; color: ${activeScheme.btnText || '#ffffff'};">${card.btnText || 'อ่านเพิ่มเติม'}</a></div>` : ''}
+                    </div>
+                `;
+                renderBody.appendChild(cardEl);
+            });
+        }
+
+        function updateFooter() {
+            const org = document.getElementById('footerOrg').value;
+            const linksRaw = document.getElementById('footerLinks').value;
+            
+            const textSize = document.getElementById('footerTextSize').value || 13;
+            const copyrightSize = document.getElementById('footerCopyrightSize').value || 11;
+
+            let linksHtml = '';
+            if (linksRaw) {
+                const linkItems = linksRaw.split(',');
+                linksHtml = linkItems.map(item => {
+                    const [text, url] = item.split('|');
+                    return url ? `<a href="${url.trim()}" target="_blank" style="color: ${activeScheme.footerText}; font-size: ${textSize}px;">${text ? text.trim() : url.trim()}</a>` : '';
+                }).join(' | ');
+            }
+
+            const footer = document.getElementById('renderFooter');
+            footer.style.textAlign = footerAlign;
+            footer.style.color = activeScheme.footerText;
+
+            footer.innerHTML = `
+                <p><strong style="color: ${activeScheme.footerText}; font-size: ${textSize}px;">${org}</strong></p>
+                <div style="margin-top: 8px;">${linksHtml}</div>
+                <div class="copyright" style="color: ${activeScheme.footerText}; font-size: ${copyrightSize}px;">© 2026 Library and Learning Space. All rights reserved.</div>
+            `;
+        }
+
+        function generateFullHTML() {
+            const headerImg = document.getElementById('headerImgUrl').value || 'https://picsum.photos/700/250?random=header';
+            const headerTitle = document.getElementById('headerTitle').value;
+            const headerDesc = document.getElementById('headerDesc').value;
+            const footerOrg = document.getElementById('footerOrg').value;
+            const linksRaw = document.getElementById('footerLinks').value;
+
+            const headerTitleSize = document.getElementById('headerTitleSize').value || 24;
+            const headerDescSize = document.getElementById('headerDescSize').value || 15;
+            const cardTitleSize = document.getElementById('cardTitleSize').value || 16;
+            const cardDescSize = document.getElementById('cardDescSize').value || 13;
+            const footerTextSize = document.getElementById('footerTextSize').value || 13;
+            const footerCopyrightSize = document.getElementById('footerCopyrightSize').value || 11;
+
+            let linksHtml = '';
+            if (linksRaw) {
+                const linkItems = linksRaw.split(',');
+                linksHtml = linkItems.map(item => {
+                    const [text, url] = item.split('|');
+                    return url ? `<a href="${url.trim()}" target="_blank" style="color: ${activeScheme.footerText}; font-size: ${footerTextSize}px; text-decoration: underline; margin: 0 4px;">${text ? text.trim() : url.trim()}</a>` : '';
+                }).join(' | ');
+            }
+
+            const colWidth = Math.floor(100 / currentColumns);
+            let rowsHtml = '';
+
+            for (let i = 0; i < cards.length; i += currentColumns) {
+                let cellsHtml = '';
+                for (let j = 0; j < currentColumns; j++) {
+                    const cardIndex = i + j;
+                    if (cardIndex < cards.length) {
+                        const card = cards[cardIndex];
+                        cellsHtml += `
+                        <td width="${colWidth}%" valign="top" style="padding: 8px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${activeScheme.cardBg || '#ffffff'}; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; text-align: ${bodyAlign};">
+                                ${card.img ? `<tr><td style="padding: 0;"><img src="${card.img}" style="width: 100%; height: 130px; object-fit: cover; display: block;" alt="Card Image"></td></tr>` : ''}
+                                <tr>
+                                    <td style="padding: 16px;">
+                                        <h3 style="margin: 0 0 8px 0; font-size: ${cardTitleSize}px; font-weight: 600; color: ${activeScheme.cardTitle};">${card.title}</h3>
+                                        <p style="margin: 0 0 14px 0; font-size: ${cardDescSize}px; color: ${activeScheme.cardDesc}; line-height: 1.5;">${card.desc}</p>
+                                        ${card.url ? `
+                                        <table border="0" cellpadding="0" cellspacing="0" ${bodyAlign === 'center' ? 'align="center"' : bodyAlign === 'right' ? 'align="right"' : ''}>
+                                            <tr>
+                                                <td align="center" style="border-radius: 4px; background-color: ${activeScheme.btnBg};">
+                                                    <a href="${card.url}" target="_blank" style="display: inline-block; padding: 7px 14px; font-size: 12px; font-weight: 500; color: ${activeScheme.btnText || '#ffffff'}; text-decoration: none;">${card.btnText || 'อ่านเพิ่มเติม'}</a>
+                                                </td>
+                                            </tr>
+                                        </table>` : ''}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>`;
+                    } else {
+                        cellsHtml += `<td width="${colWidth}%" style="padding: 8px;"></td>`;
+                    }
+                }
+                rowsHtml += `<tr>${cellsHtml}</tr>`;
+            }
+
+            return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="th">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>${headerTitle}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: 'Prompt', 'Sarabun', Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f5; padding: 30px 0; table-layout: fixed;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 650px; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e4e4e7;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: ${activeScheme.headerBg}; color: ${activeScheme.headerText}; padding: 32px 24px; text-align: ${headerAlign};">
+                            ${headerImg ? `<img src="${headerImg}" style="max-width: 100%; height: auto; border-radius: 6px; margin-bottom: 20px; display: inline-block;" alt="Header">` : ''}
+                            <h1 style="margin: 0 0 10px 0; font-size: ${headerTitleSize}px; font-weight: 600; color: ${activeScheme.headerText}; line-height: 1.3;">${headerTitle}</h1>
+                            <p style="margin: 0; font-size: ${headerDescSize}px; opacity: 0.85; color: ${activeScheme.headerText}; line-height: 1.6;">${headerDesc}</p>
+                        </td>
+                    </tr>
+                    <!-- Content Body -->
+                    <tr>
+                        <td style="background-color: ${activeScheme.bodyBg || '#ffffff'}; padding: 16px 16px 24px 16px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                ${rowsHtml}
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="background-color: ${activeScheme.headerBg}; color: ${activeScheme.footerText}; padding: 24px; font-size: ${footerTextSize}px; border-top: 1px solid #e4e4e7; text-align: ${footerAlign};">
+                            <p style="margin: 0 0 8px 0; font-weight: 600; color: ${activeScheme.footerText}; font-size: ${footerTextSize}px;">${footerOrg}</p>
+                            <div style="margin-bottom: 12px;">${linksHtml}</div>
+                            <div style="font-size: ${footerCopyrightSize}px; opacity: 0.6; color: ${activeScheme.footerText};">© 2026 Library and Learning Space. All rights reserved.</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+        }
+
+        function showHtmlModal() {
+            document.getElementById('htmlCodeOutput').value = generateFullHTML();
+            document.getElementById('htmlModal').classList.add('active');
+        }
+
+        function closeHtmlModal() {
+            document.getElementById('htmlModal').classList.remove('active');
+        }
+
+        function copyToClipboard() {
+            const textarea = document.getElementById('htmlCodeOutput');
+            textarea.select();
+            document.execCommand('copy');
+            alert('คัดลอกโค้ด HTML เรียบร้อยแล้ว!');
+        }
+
+        function downloadHtml() {
+            const content = generateFullHTML();
+            const blob = new Blob([content], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'email-template-minimal.html';
+            link.click();
+        }
+    </script>
+</body>
+</html>
