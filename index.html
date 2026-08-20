@@ -385,9 +385,6 @@
         .email-header img {
             max-width: 100%;
             height: auto;
-            max-height: 240px;
-            object-fit: cover;
-            border-radius: 6px;
             margin-bottom: 20px;
         }
 
@@ -425,11 +422,11 @@
             display: flex;
             flex-direction: column;
             background: #ffffff;
+            transition: background 0.2s;
         }
 
         .content-card img {
             width: 100%;
-            height: 140px;
             object-fit: cover;
         }
 
@@ -458,11 +455,15 @@
         .content-card-body a {
             display: inline-block;
             text-align: center;
-            padding: 8px 14px;
             text-decoration: none;
             border-radius: 4px;
-            font-size: 0.8rem;
             font-weight: 500;
+        }
+
+        .email-extra {
+            padding: 24px;
+            border-top: 1px solid var(--border-color);
+            transition: background 0.2s;
         }
 
         .email-footer {
@@ -478,6 +479,36 @@
         .copyright {
             margin-top: 12px;
             opacity: 0.6;
+        }
+
+        /* Extra Helpers */
+        .emoji-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .emoji-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 0.85rem;
+        }
+        .text-format-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .format-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
         /* Modal */
@@ -565,8 +596,11 @@
                 <div class="accordion-body">
                     <!-- Preset Color Schemes -->
                     <div class="form-group">
-                        <label>เลือกชุดโทนสี (Preset):</label>
-                        <div class="color-grid" id="colorPickerGrid"></div>
+                        <label>เลือกชุดโทนสี (Preset 20 ชุด):</label>
+                        <div style="font-size: 0.75rem; font-weight:600; margin: 6px 0 4px; color:var(--text-muted)">— มินิมอลคุมโทน (10) —</div>
+                        <div class="color-grid" id="minimalColorGrid"></div>
+                        <div style="font-size: 0.75rem; font-weight:600; margin: 10px 0 4px; color:var(--text-muted)">— สีสัน Gradient สวยงาม (10) —</div>
+                        <div class="color-grid" id="gradientColorGrid"></div>
                     </div>
 
                     <!-- Custom Color Input -->
@@ -618,6 +652,10 @@
                 </div>
                 <div class="accordion-body">
                     <div class="form-group">
+                        <label>การแสดงผลรูปภาพ:</label>
+                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="headerShowImg" checked onchange="updateHeader()"> แสดงรูปภาพส่วนหัว</label>
+                    </div>
+                    <div class="form-group">
                         <label>การจัดวางข้อความ (Align):</label>
                         <div class="align-btn-group">
                             <button class="align-btn active" id="headerAlignLeft" onclick="setHeaderAlign('left')"><i class="fa-solid fa-align-left"></i></button>
@@ -646,16 +684,45 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label>ตั้งค่ารูปภาพส่วนหัว:</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">ความสูงรูปภาพ (px):</label>
+                                <input type="number" id="headerImgHeight" class="form-control" value="240" min="50" max="800" oninput="updateHeader()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">ทรงรูปภาพ:</label>
+                                <select id="headerImgShape" class="form-control" onchange="updateHeader()">
+                                    <option value="6px">มุมมนปกติ</option>
+                                    <option value="0px">มุมเหลี่ยม</option>
+                                    <option value="50%">วงกลม</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>ลิงก์รูปภาพปก (URL) หรืออัปโหลด:</label>
                         <input type="text" class="form-control" id="headerImgUrl" placeholder="https://..." oninput="updateHeader()">
                         <input type="file" class="form-control" id="headerImgFile" accept="image/*" style="margin-top:6px;" onchange="handleFileUpload(event, 'headerImgUrl', updateHeader)">
                     </div>
                     <div class="form-group">
                         <label>หัวข้อเรื่องหลัก:</label>
+                        <div class="emoji-bar" id="headerTitleEmoji"></div>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatText('headerTitle', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatText('headerTitle', 'italic')"><i>I</i></button>
+                            <button class="format-btn" onclick="formatText('headerTitle', 'thin')">W</button>
+                        </div>
                         <input type="text" class="form-control" id="headerTitle" value="จดหมายข่าวห้องสมุดประจำเดือน" oninput="updateHeader()">
                     </div>
                     <div class="form-group">
                         <label>เนื้อหาเกริ่นนำ:</label>
+                        <div class="emoji-bar" id="headerDescEmoji"></div>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatText('headerDesc', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatText('headerDesc', 'italic')"><i>I</i></button>
+                            <button class="format-btn" onclick="formatText('headerDesc', 'thin')">W</button>
+                        </div>
                         <textarea class="form-control" id="headerDesc" oninput="updateHeader()">ยินดีต้อนรับสู่จดหมายข่าวสารดิจิทัล แหล่งรวมข้อมูล ความรู้ และกิจกรรมใหม่ๆ สำหรับสมาชิกทุกท่าน</textarea>
                     </div>
                 </div>
@@ -667,6 +734,35 @@
                     <span><i class="fa-solid fa-layer-group"></i> ส่วนที่ 2: ส่วนเนื้อหาหลัก</span>
                 </div>
                 <div class="accordion-body">
+                    <!-- เพิ่มส่วนปรับสีพื้นหลังของการ์ดเนื้อหา -->
+                    <div class="form-group">
+                        <label>สีพื้นหลังกล่องเนื้อหา (Card Background):</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerCardBgColor" class="color-picker-input" value="#fafafa" onchange="syncCardBgColor(this.value)">
+                            <input type="text" id="hexCardBgColor" class="form-control" value="#fafafa" oninput="updateCardBgColor(this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>การแสดงผลรูปภาพในส่วนนี้ทั้งหมด:</label>
+                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="bodyShowImg" checked onchange="updateBody()"> แสดงรูปภาพเนื้อหา</label>
+                    </div>
+                    <div class="form-group">
+                        <label>ตั้งค่าขนาดและทรงรูปภาพในกล่องเนื้อหา:</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">ความสูงรูปภาพ (px):</label>
+                                <input type="number" id="cardImgHeight" class="form-control" value="140" min="40" max="600" oninput="updateBody()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">ทรงรูปภาพ:</label>
+                                <select id="cardImgShape" class="form-control" onchange="updateBody()">
+                                    <option value="0px">มุมเหลี่ยม</option>
+                                    <option value="8px">มุมมน</option>
+                                    <option value="50%">วงกลม</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>การจัดวางข้อความในกล่อง (Align):</label>
                         <div class="align-btn-group">
@@ -675,6 +771,29 @@
                             <button class="align-btn" id="bodyAlignRight" onclick="setBodyAlign('right')"><i class="fa-solid fa-align-right"></i></button>
                         </div>
                     </div>
+                    <!-- ปุ่มกดปรับการจัดวางและขนาดภาพรวม ของส่วนที่ 2 -->
+                    <div class="form-group">
+                        <label>การจัดวางปุ่มกดในกล่อง (Align):</label>
+                        <div class="align-btn-group">
+                            <button class="align-btn active" id="cardBtnAlignLeft" onclick="setCardBtnAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                            <button class="align-btn" id="cardBtnAlignCenter" onclick="setCardBtnAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                            <button class="align-btn" id="cardBtnAlignRight" onclick="setCardBtnAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดปุ่มในกล่อง / ระยะขอบ (px):</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">ขนาดตัวอักษรปุ่ม:</label>
+                                <input type="number" id="cardBtnFontSize" class="form-control" value="12" min="10" max="24" oninput="updateBody()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">ระยะขอบปุ่ม (Padding):</label>
+                                <input type="number" id="cardBtnPadding" class="form-control" value="8" min="4" max="30" oninput="updateBody()">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>สีตัวอักษรหัวข้อกล่องเนื้อหา:</label>
                         <div class="input-inline-group">
@@ -705,6 +824,101 @@
                     <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 16px 0;">
                     <div id="cardList"></div>
                     <button class="btn btn-secondary btn-full" onclick="addCard()"><i class="fa-solid fa-plus"></i> เพิ่มกล่องเนื้อหา</button>
+                </div>
+            </div>
+
+            <!-- Custom Extra Section (Between Body & Footer) -->
+            <div class="accordion-section">
+                <div class="accordion-title">
+                    <span><i class="fa-solid fa-star"></i> ส่วนแทรกพิเศษ (ข้อมูลเฉพาะ)</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="showExtraSection" onchange="updateExtraSection()"> แสดงส่วนแทรกพิเศษนี้</label>
+                    </div>
+                    <!-- เพิ่มส่วนปรับสีพื้นหลังของส่วนแทรกพิเศษ -->
+                    <div class="form-group">
+                        <label>สีพื้นหลังส่วนแทรกพิเศษ:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerExtraBgColor" class="color-picker-input" value="#ffffff" onchange="syncExtraColor('bg', this.value)">
+                            <input type="text" id="hexExtraBgColor" class="form-control" value="#ffffff" oninput="updateExtraColor('bg', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>การจัดวางข้อความ (Align):</label>
+                        <div class="align-btn-group">
+                            <button class="align-btn active" id="extraAlignLeft" onclick="setExtraAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                            <button class="align-btn" id="extraAlignCenter" onclick="setExtraAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                            <button class="align-btn" id="extraAlignRight" onclick="setExtraAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สีตัวอักษรเนื้อหา:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerExtraTextColor" class="color-picker-input" value="#09090b" onchange="syncExtraColor('text', this.value)">
+                            <input type="text" id="hexExtraTextColor" class="form-control" value="#09090b" oninput="updateExtraColor('text', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดตัวอักษรเนื้อหา (px):</label>
+                        <input type="number" id="extraTextSize" class="form-control" value="14" min="10" max="36" oninput="updateExtraSection()">
+                    </div>
+                    <div class="form-group">
+                        <label>ข้อความเนื้อหาเฉพาะกิจ:</label>
+                        <div class="emoji-bar" id="extraTextEmoji"></div>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatText('extraText', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatText('extraText', 'italic')"><i>I</i></button>
+                            <button class="format-btn" onclick="formatText('extraText', 'thin')">W</button>
+                        </div>
+                        <textarea class="form-control" id="extraText" oninput="updateExtraSection()">📌 หมายเหตุพิเศษ: สำหรับท่านที่ต้องการลงทะเบียนเข้าร่วมกิจกรรมอบรมเชิงปฏิบัติการ กรุณากดปุ่มด้านล่างเพื่อยืนยันสิทธิ์ล่วงหน้า</textarea>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 16px 0;">
+                    <div class="form-group">
+                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="showExtraBtn" checked onchange="updateExtraSection()"> แสดงปุ่มกดเฉพาะ</label>
+                    </div>
+                    <div class="form-group">
+                        <label>การจัดวางปุ่มกด (Align):</label>
+                        <div class="align-btn-group">
+                            <button class="align-btn" id="extraBtnAlignLeft" onclick="setExtraBtnAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                            <button class="align-btn active" id="extraBtnAlignCenter" onclick="setExtraBtnAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                            <button class="align-btn" id="extraBtnAlignRight" onclick="setExtraBtnAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>การปรับแต่งปุ่มกด:</label>
+                        <div class="input-inline-group">
+                            <label>สีพื้นปุ่ม:</label>
+                            <input type="color" id="pickerExtraBtnBg" class="color-picker-input" value="#18181b" onchange="syncExtraColor('btnBg', this.value)">
+                            <input type="text" id="hexExtraBtnBg" class="form-control" value="#18181b" oninput="updateExtraColor('btnBg', this.value)">
+                        </div>
+                        <div class="input-inline-group" style="margin-top:6px;">
+                            <label>สีข้อความปุ่ม:</label>
+                            <input type="color" id="pickerExtraBtnTextColor" class="color-picker-input" value="#ffffff" onchange="syncExtraColor('btnText', this.value)">
+                            <input type="text" id="hexExtraBtnTextColor" class="form-control" value="#ffffff" oninput="updateExtraColor('btnText', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดปุ่ม / ขนาดตัวอักษรปุ่ม (px):</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">ขนาดตัวอักษร:</label>
+                                <input type="number" id="extraBtnFontSize" class="form-control" value="13" min="10" max="24" oninput="updateExtraSection()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">ระยะขอบปุ่ม (Padding):</label>
+                                <input type="number" id="extraBtnPadding" class="form-control" value="10" min="4" max="30" oninput="updateExtraSection()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ข้อความบนปุ่ม:</label>
+                        <input type="text" class="form-control" id="extraBtnText" value="🔗 ลงทะเบียนเข้าร่วมงาน" oninput="updateExtraSection()">
+                    </div>
+                    <div class="form-group">
+                        <label>ลิงก์ปุ่มกด (URL):</label>
+                        <input type="text" class="form-control" id="extraBtnUrl" value="https://example.com/register" oninput="updateExtraSection()">
+                    </div>
                 </div>
             </div>
 
@@ -771,6 +985,7 @@
                 <div class="email-body" id="renderEmailBody">
                     <div class="content-grid" id="renderBody"></div>
                 </div>
+                <div class="email-extra" id="renderExtra"></div>
                 <div class="email-footer" id="renderFooter"></div>
             </div>
         </div>
@@ -794,27 +1009,44 @@
     </div>
 
     <script>
-        // Preset Color Schemes
-        const colorSchemes = [
-            { id: 'minimal-dark', name: 'Monochrome Dark', headerBg: '#18181b', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fafafa', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#18181b', btnText: '#ffffff', footerText: '#ffffff' },
-            { id: 'minimal-gray', name: 'Soft Slate', headerBg: '#f4f4f5', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#27272a', btnText: '#ffffff', footerText: '#09090b' },
-            { id: 'minimal-blue', name: 'Deep Navy', headerBg: '#0f172a', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#ffffff' },
-            { id: 'minimal-sage', name: 'Warm Sage', headerBg: '#2e3a31', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f6f7f6', cardTitle: '#1c241e', cardDesc: '#5c6b60', btnBg: '#2e3a31', btnText: '#ffffff', footerText: '#ffffff' },
-            { id: 'minimal-sand', name: 'Warm Beige', headerBg: '#fefcf8', headerText: '#1c1917', bodyBg: '#fdfbf7', cardBg: '#fafaf9', cardTitle: '#1c1917', cardDesc: '#78716c', btnBg: '#292524', btnText: '#ffffff', footerText: '#1c1917' },
-            { id: 'minimal-clean', name: 'Pure White', headerBg: '#ffffff', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#09090b', btnText: '#ffffff', footerText: '#09090b' },
-            { id: 'minimal-charcoal', name: 'Charcoal', headerBg: '#334155', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#1e293b', cardDesc: '#64748b', btnBg: '#334155', btnText: '#ffffff', footerText: '#ffffff' },
-            { id: 'minimal-taupe', name: 'Neutral Taupe', headerBg: '#44403c', headerText: '#ffffff', bodyBg: '#fafaf9', cardBg: '#ffffff', cardTitle: '#292524', cardDesc: '#78716c', btnBg: '#44403c', btnText: '#ffffff', footerText: '#ffffff' },
-            { id: 'minimal-olive', name: 'Muted Olive', headerBg: '#3f4e4f', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f5f5f5', cardTitle: '#2c3639', cardDesc: '#6a787a', btnBg: '#2c3639', btnText: '#ffffff', footerText: '#ffffff' },
-            { id: 'minimal-ash', name: 'Ash Gray', headerBg: '#e2e8f0', headerText: '#0f172a', bodyBg: '#f8fafc', cardBg: '#ffffff', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#0f172a' },
-            { id: 'minimal-chocolate', name: 'Soft Espresso', headerBg: '#27201d', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fcfbfb', cardTitle: '#27201d', cardDesc: '#786c66', btnBg: '#27201d', btnText: '#ffffff', footerText: '#ffffff' }
+        // Preset Color Schemes (10 Minimal + 10 Gradient)
+        const minimalSchemes = [
+            { id: 'minimal-dark', name: 'Monochrome Dark', headerBg: '#18181b', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fafafa', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#18181b', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#ffffff' },
+            { id: 'minimal-gray', name: 'Soft Slate', headerBg: '#f4f4f5', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#27272a', btnText: '#ffffff', footerText: '#09090b', extraBg: '#fafafa' },
+            { id: 'minimal-blue', name: 'Deep Navy', headerBg: '#0f172a', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f8fafc' },
+            { id: 'minimal-sage', name: 'Warm Sage', headerBg: '#2e3a31', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f6f7f6', cardTitle: '#1c241e', cardDesc: '#5c6b60', btnBg: '#2e3a31', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f6f7f6' },
+            { id: 'minimal-sand', name: 'Warm Beige', headerBg: '#fefcf8', headerText: '#1c1917', bodyBg: '#fdfbf7', cardBg: '#fafaf9', cardTitle: '#1c1917', cardDesc: '#78716c', btnBg: '#292524', btnText: '#ffffff', footerText: '#1c1917', extraBg: '#fafaf9' },
+            { id: 'minimal-clean', name: 'Pure White', headerBg: '#ffffff', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#09090b', btnText: '#ffffff', footerText: '#09090b', extraBg: '#fafafa' },
+            { id: 'minimal-charcoal', name: 'Charcoal', headerBg: '#334155', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#1e293b', cardDesc: '#64748b', btnBg: '#334155', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f8fafc' },
+            { id: 'minimal-taupe', name: 'Neutral Taupe', headerBg: '#44403c', headerText: '#ffffff', bodyBg: '#fafaf9', cardBg: '#ffffff', cardTitle: '#292524', cardDesc: '#78716c', btnBg: '#44403c', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#ffffff' },
+            { id: 'minimal-olive', name: 'Muted Olive', headerBg: '#3f4e4f', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f5f5f5', cardTitle: '#2c3639', cardDesc: '#6a787a', btnBg: '#2c3639', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f5f5f5' },
+            { id: 'minimal-ash', name: 'Ash Gray', headerBg: '#e2e8f0', headerText: '#0f172a', bodyBg: '#f8fafc', cardBg: '#ffffff', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#0f172a', extraBg: '#ffffff' }
         ];
 
-        let activeScheme = {...colorSchemes[0]};
+        const gradientSchemes = [
+            { id: 'grad-sunset', name: 'Sunset Glow', headerBg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fffaf8', cardTitle: '#4a2c2a', cardDesc: '#7a5a58', btnBg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#fffaf8' },
+            { id: 'grad-ocean', name: 'Ocean Wave', headerBg: 'linear-gradient(135deg, #2b5876, #4e4376)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f5f8fa', cardTitle: '#1e2d3b', cardDesc: '#5a6e7f', btnBg: 'linear-gradient(135deg, #2b5876, #4e4376)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f5f8fa' },
+            { id: 'grad-aurora', name: 'Aurora Neon', headerBg: 'linear-gradient(135deg, #00c6ff, #0072ff)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f0f9ff', cardTitle: '#032b45', cardDesc: '#416a85', btnBg: 'linear-gradient(135deg, #00c6ff, #0072ff)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f0f9ff' },
+            { id: 'grad-peach', name: 'Peach Velvet', headerBg: 'linear-gradient(135deg, #ed4264, #ffedbc)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fffbf7', cardTitle: '#3d252a', cardDesc: '#73575c', btnBg: 'linear-gradient(135deg, #ed4264, #ffedbc)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#fffbf7' },
+            { id: 'grad-emerald', name: 'Emerald Forest', headerBg: 'linear-gradient(135deg, #11998e, #38ef7d)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f2fcf7', cardTitle: '#0f382a', cardDesc: '#486e60', btnBg: 'linear-gradient(135deg, #11998e, #38ef7d)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f2fcf7' },
+            { id: 'grad-purple', name: 'Berry Galaxy', headerBg: 'linear-gradient(135deg, #8e2de2, #4a00e0)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f9f5ff', cardTitle: '#270845', cardDesc: '#5e417d', btnBg: 'linear-gradient(135deg, #8e2de2, #4a00e0)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f9f5ff' },
+            { id: 'grad-fire', name: 'Flaming Orange', headerBg: 'linear-gradient(135deg, #f12711, #f5af19)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fffdf9', cardTitle: '#3d1606', cardDesc: '#7a4f3b', btnBg: 'linear-gradient(135deg, #f12711, #f5af19)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#fffdf9' },
+            { id: 'grad-candy', name: 'Cotton Candy', headerBg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fff9fb', cardTitle: '#421a2b', cardDesc: '#754d5e', btnBg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', btnText: '#421a2b', footerText: '#ffffff', extraBg: '#fff9fb' },
+            { id: 'grad-midnight', name: 'Midnight Glow', headerBg: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f4f7f8', cardTitle: '#0f2027', cardDesc: '#506670', btnBg: 'linear-gradient(135deg, #0f2027, #2c5364)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f4f7f8' },
+            { id: 'grad-rose', name: 'Rose Gold', headerBg: 'linear-gradient(135deg, #f43b47, #453a94)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#faf9fc', cardTitle: '#1f1938', cardDesc: '#5b537a', btnBg: 'linear-gradient(135deg, #f43b47, #453a94)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#faf9fc' }
+        ];
+
+        const emojis = ['✨', '📌', '📢', '🔥', '🎉', '💡', '📚', '🚀', '❤️', '✅', '⭐', '🎁'];
+
+        let activeScheme = {...minimalSchemes[0]};
         let currentColumns = 2;
 
         // Alignments
         let headerAlign = 'left';
         let bodyAlign = 'left';
+        let cardBtnAlign = 'left';
+        let extraAlign = 'left';
+        let extraBtnAlign = 'center';
         let footerAlign = 'center';
 
         let cards = [
@@ -835,31 +1067,88 @@
         ];
 
         window.onload = function() {
+            initEmojiPalettes();
             renderColorPickers();
             renderCardInputs();
             syncCustomColorInputs();
             updateHeader();
             updateBody();
+            updateExtraSection();
             updateFooter();
             applyTheme();
         };
 
-        function renderColorPickers() {
-            const grid = document.getElementById('colorPickerGrid');
-            grid.innerHTML = '';
-            colorSchemes.forEach((scheme) => {
-                const option = document.createElement('div');
-                option.className = `color-option ${scheme.id === activeScheme.id ? 'active' : ''}`;
-                option.onclick = () => selectColorScheme(scheme);
-                option.innerHTML = `
-                    <div class="color-preview">
-                        <span style="background: ${scheme.headerBg}"></span>
-                        <span style="background: ${scheme.btnBg}"></span>
-                    </div>
-                    <span class="color-name">${scheme.name}</span>
-                `;
-                grid.appendChild(option);
+        function initEmojiPalettes() {
+            const targets = ['headerTitleEmoji', 'headerDescEmoji', 'extraTextEmoji'];
+            targets.forEach(id => {
+                const container = document.getElementById(id);
+                if (!container) return;
+                const fieldId = id.replace('Emoji', '');
+                emojis.forEach(emo => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'emoji-btn';
+                    btn.innerText = emo;
+                    btn.onclick = () => insertAtCursor(fieldId, emo);
+                    container.appendChild(btn);
+                });
             });
+        }
+
+        function insertAtCursor(fieldId, text) {
+            const el = document.getElementById(fieldId);
+            if (!el) return;
+            const start = el.selectionStart || el.value.length;
+            const end = el.selectionEnd || el.value.length;
+            el.value = el.value.substring(0, start) + text + el.value.substring(end);
+            el.focus();
+            el.selectionStart = el.selectionEnd = start + text.length;
+
+            if (fieldId.startsWith('header')) updateHeader();
+            else if (fieldId.startsWith('extra')) updateExtraSection();
+        }
+
+        function formatText(fieldId, type) {
+            const el = document.getElementById(fieldId);
+            if (!el) return;
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const sel = el.value.substring(start, end) || 'ข้อความ';
+            let formatted = sel;
+
+            if (type === 'bold') formatted = `<b>${sel}</b>`;
+            else if (type === 'italic') formatted = `<i>${sel}</i>`;
+            else if (type === 'thin') formatted = `<span style="font-weight:300;">${sel}</span>`;
+
+            el.value = el.value.substring(0, start) + formatted + el.value.substring(end);
+            el.focus();
+
+            if (fieldId.startsWith('header')) updateHeader();
+            else if (fieldId.startsWith('extra')) updateExtraSection();
+        }
+
+        function renderColorPickers() {
+            const minGrid = document.getElementById('minimalColorGrid');
+            const gradGrid = document.getElementById('gradientColorGrid');
+            minGrid.innerHTML = '';
+            gradGrid.innerHTML = '';
+
+            minimalSchemes.forEach(scheme => minGrid.appendChild(createSchemeOption(scheme)));
+            gradientSchemes.forEach(scheme => gradGrid.appendChild(createSchemeOption(scheme)));
+        }
+
+        function createSchemeOption(scheme) {
+            const option = document.createElement('div');
+            option.className = `color-option ${scheme.id === activeScheme.id ? 'active' : ''}`;
+            option.onclick = () => selectColorScheme(scheme);
+            option.innerHTML = `
+                <div class="color-preview">
+                    <span style="background: ${scheme.headerBg}"></span>
+                    <span style="background: ${scheme.btnBg}"></span>
+                </div>
+                <span class="color-name">${scheme.name}</span>
+            `;
+            return option;
         }
 
         function selectColorScheme(scheme) {
@@ -881,6 +1170,12 @@
 
             document.getElementById('pickerHeaderTextColor').value = normalizeHex(activeScheme.headerText);
             document.getElementById('hexHeaderTextColor').value = activeScheme.headerText;
+
+            document.getElementById('pickerCardBgColor').value = normalizeHex(activeScheme.cardBg || '#fafafa');
+            document.getElementById('hexCardBgColor').value = activeScheme.cardBg || '#fafafa';
+
+            document.getElementById('pickerExtraBgColor').value = normalizeHex(activeScheme.extraBg || '#ffffff');
+            document.getElementById('hexExtraBgColor').value = activeScheme.extraBg || '#ffffff';
 
             document.getElementById('pickerCardTitleColor').value = normalizeHex(activeScheme.cardTitle);
             document.getElementById('hexCardTitleColor').value = activeScheme.cardTitle;
@@ -924,6 +1219,19 @@
             applyTheme();
         }
 
+        /* ฟังก์ชันปรับสีพื้นหลังของการ์ดเนื้อหา (Card Bg) */
+        function syncCardBgColor(val) {
+            document.getElementById('hexCardBgColor').value = val;
+            activeScheme.cardBg = val;
+            updateBody();
+        }
+
+        function updateCardBgColor(val) {
+            activeScheme.cardBg = val;
+            if (isValidHex(val)) document.getElementById('pickerCardBgColor').value = val;
+            updateBody();
+        }
+
         function syncTextColor(key, val) {
             if (key === 'headerText') {
                 document.getElementById('hexHeaderTextColor').value = val;
@@ -964,6 +1272,34 @@
             }
         }
 
+        function syncExtraColor(key, val) {
+            if (key === 'bg') {
+                document.getElementById('hexExtraBgColor').value = val;
+                activeScheme.extraBg = val;
+            } else if (key === 'text') {
+                document.getElementById('hexExtraTextColor').value = val;
+            } else if (key === 'btnBg') {
+                document.getElementById('hexExtraBtnBg').value = val;
+            } else if (key === 'btnText') {
+                document.getElementById('hexExtraBtnTextColor').value = val;
+            }
+            updateExtraSection();
+        }
+
+        function updateExtraColor(key, val) {
+            if (key === 'bg') {
+                activeScheme.extraBg = val;
+                if (isValidHex(val)) document.getElementById('pickerExtraBgColor').value = val;
+            } else if (key === 'text') {
+                if (isValidHex(val)) document.getElementById('pickerExtraTextColor').value = val;
+            } else if (key === 'btnBg') {
+                if (isValidHex(val)) document.getElementById('pickerExtraBtnBg').value = val;
+            } else if (key === 'btnText') {
+                if (isValidHex(val)) document.getElementById('pickerExtraBtnTextColor').value = val;
+            }
+            updateExtraSection();
+        }
+
         /* Alignment Functions */
         function setHeaderAlign(align) {
             headerAlign = align;
@@ -979,6 +1315,30 @@
                 document.getElementById(`bodyAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
             });
             updateBody();
+        }
+
+        function setCardBtnAlign(align) {
+            cardBtnAlign = align;
+            ['left', 'center', 'right'].forEach(a => {
+                document.getElementById(`cardBtnAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            });
+            updateBody();
+        }
+
+        function setExtraAlign(align) {
+            extraAlign = align;
+            ['left', 'center', 'right'].forEach(a => {
+                document.getElementById(`extraAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            });
+            updateExtraSection();
+        }
+
+        function setExtraBtnAlign(align) {
+            extraBtnAlign = align;
+            ['left', 'center', 'right'].forEach(a => {
+                document.getElementById(`extraBtnAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            });
+            updateExtraSection();
         }
 
         function setFooterAlign(align) {
@@ -1008,6 +1368,7 @@
 
             updateHeader();
             updateBody();
+            updateExtraSection();
             updateFooter();
         }
 
@@ -1036,7 +1397,11 @@
         }
 
         function updateHeader() {
+            const showImg = document.getElementById('headerShowImg').checked;
             const imgUrl = document.getElementById('headerImgUrl').value || 'https://picsum.photos/700/250?random=header';
+            const imgHeight = document.getElementById('headerImgHeight').value || 240;
+            const imgShape = document.getElementById('headerImgShape').value || '6px';
+
             const title = document.getElementById('headerTitle').value;
             const desc = document.getElementById('headerDesc').value;
 
@@ -1047,8 +1412,11 @@
             header.style.textAlign = headerAlign;
             header.style.color = activeScheme.headerText;
 
+            let imgStyle = `max-width: 100%; height: ${imgHeight}px; object-fit: cover; border-radius: ${imgShape}; margin-bottom: 20px;`;
+            if (imgShape === '50%') imgStyle += ` width: ${imgHeight}px;`;
+
             header.innerHTML = `
-                ${imgUrl ? `<img src="${imgUrl}" alt="Header Image">` : ''}
+                ${showImg && imgUrl ? `<img src="${imgUrl}" style="${imgStyle}" alt="Header Image">` : ''}
                 <h1 style="color: ${activeScheme.headerText}; font-size: ${titleSize}px;">${title}</h1>
                 <p style="color: ${activeScheme.headerText}; font-size: ${descSize}px;">${desc}</p>
             `;
@@ -1071,11 +1439,23 @@
                     </div>
                     <div class="form-group">
                         <label>หัวข้อเรื่อง:</label>
-                        <input type="text" class="form-control" value="${card.title}" oninput="updateCardData(${index}, 'title', this.value)">
+                        <div class="emoji-bar" id="cardTitleEmoji_${index}"></div>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatCardText(${index}, 'title', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatCardText(${index}, 'title', 'italic')"><i>I</i></button>
+                            <button class="format-btn" onclick="formatCardText(${index}, 'title', 'thin')">W</button>
+                        </div>
+                        <input type="text" class="form-control" id="cardTitle_${index}" value="${card.title}" oninput="updateCardData(${index}, 'title', this.value)">
                     </div>
                     <div class="form-group">
                         <label>เนื้อหาเกริ่นนำ:</label>
-                        <textarea class="form-control" oninput="updateCardData(${index}, 'desc', this.value)">${card.desc}</textarea>
+                        <div class="emoji-bar" id="cardDescEmoji_${index}"></div>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatCardText(${index}, 'desc', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatCardText(${index}, 'desc', 'italic')"><i>I</i></button>
+                            <button class="format-btn" onclick="formatCardText(${index}, 'desc', 'thin')">W</button>
+                        </div>
+                        <textarea class="form-control" id="cardDesc_${index}" oninput="updateCardData(${index}, 'desc', this.value)">${card.desc}</textarea>
                     </div>
                     <div class="form-group">
                         <label>ข้อความปุ่ม:</label>
@@ -1087,7 +1467,40 @@
                     </div>
                 `;
                 list.appendChild(cardDiv);
+
+                ['Title', 'Desc'].forEach(type => {
+                    const emContainer = document.getElementById(`card${type}Emoji_${index}`);
+                    emojis.forEach(emo => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'emoji-btn';
+                        btn.innerText = emo;
+                        btn.onclick = () => {
+                            const inp = document.getElementById(`card${type}_${index}`);
+                            const start = inp.selectionStart || inp.value.length;
+                            inp.value = inp.value.substring(0, start) + emo + inp.value.substring(start);
+                            updateCardData(index, type.toLowerCase(), inp.value);
+                        };
+                        emContainer.appendChild(btn);
+                    });
+                });
             });
+        }
+
+        function formatCardText(index, key, type) {
+            const el = document.getElementById(`card${key.charAt(0).toUpperCase() + key.slice(1)}_${index}`);
+            if (!el) return;
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const sel = el.value.substring(start, end) || 'ข้อความ';
+            let formatted = sel;
+
+            if (type === 'bold') formatted = `<b>${sel}</b>`;
+            else if (type === 'italic') formatted = `<i>${sel}</i>`;
+            else if (type === 'thin') formatted = `<span style="font-weight:300;">${sel}</span>`;
+
+            el.value = el.value.substring(0, start) + formatted + el.value.substring(end);
+            updateCardData(index, key, el.value);
         }
 
         function handleCardFileUpload(event, index) {
@@ -1131,8 +1544,15 @@
         }
 
         function updateBody() {
+            const showImg = document.getElementById('bodyShowImg').checked;
+            const imgHeight = document.getElementById('cardImgHeight').value || 140;
+            const imgShape = document.getElementById('cardImgShape').value || '0px';
+
             const cardTitleSize = document.getElementById('cardTitleSize').value || 16;
             const cardDescSize = document.getElementById('cardDescSize').value || 13;
+
+            const btnFontSize = document.getElementById('cardBtnFontSize').value || 12;
+            const btnPadding = document.getElementById('cardBtnPadding').value || 8;
 
             const renderBody = document.getElementById('renderBody');
             renderBody.innerHTML = '';
@@ -1140,19 +1560,59 @@
             cards.forEach(card => {
                 const cardEl = document.createElement('div');
                 cardEl.className = 'content-card';
-                cardEl.style.background = activeScheme.cardBg || '#ffffff';
+                cardEl.style.background = activeScheme.cardBg || '#fafafa';
                 cardEl.style.textAlign = bodyAlign;
 
+                let imgStyle = `width: 100%; height: ${imgHeight}px; object-fit: cover; border-radius: ${imgShape};`;
+                if (imgShape === '50%') imgStyle += ` width: ${imgHeight}px; margin: 10px auto 0;`;
+
                 cardEl.innerHTML = `
-                    ${card.img ? `<img src="${card.img}" alt="${card.title}">` : ''}
+                    ${showImg && card.img ? `<img src="${card.img}" style="${imgStyle}" alt="${card.title}">` : ''}
                     <div class="content-card-body">
                         <h3 style="color: ${activeScheme.cardTitle}; font-size: ${cardTitleSize}px;">${card.title}</h3>
                         <p style="color: ${activeScheme.cardDesc}; font-size: ${cardDescSize}px;">${card.desc}</p>
-                        ${card.url ? `<div class="btn-wrapper"><a href="${card.url}" target="_blank" style="background: ${activeScheme.btnBg}; color: ${activeScheme.btnText || '#ffffff'};">${card.btnText || 'อ่านเพิ่มเติม'}</a></div>` : ''}
+                        ${card.url ? `
+                        <div class="btn-wrapper" style="text-align: ${cardBtnAlign};">
+                            <a href="${card.url}" target="_blank" style="background: ${activeScheme.btnBg}; color: ${activeScheme.btnText || '#ffffff'}; font-size: ${btnFontSize}px; padding: ${btnPadding}px ${parseInt(btnPadding)*1.8}px;">${card.btnText || 'อ่านเพิ่มเติม'}</a>
+                        </div>` : ''}
                     </div>
                 `;
                 renderBody.appendChild(cardEl);
             });
+        }
+
+        function updateExtraSection() {
+            const showExtra = document.getElementById('showExtraSection').checked;
+            const renderExtra = document.getElementById('renderExtra');
+
+            if (!showExtra) {
+                renderExtra.style.display = 'none';
+                return;
+            }
+
+            renderExtra.style.display = 'block';
+            renderExtra.style.textAlign = extraAlign;
+            renderExtra.style.background = activeScheme.extraBg || '#ffffff';
+
+            const text = document.getElementById('extraText').value;
+            const textColor = document.getElementById('hexExtraTextColor').value || '#09090b';
+            const textSize = document.getElementById('extraTextSize').value || 14;
+
+            const showBtn = document.getElementById('showExtraBtn').checked;
+            const btnText = document.getElementById('extraBtnText').value;
+            const btnUrl = document.getElementById('extraBtnUrl').value;
+            const btnBg = document.getElementById('hexExtraBtnBg').value || '#18181b';
+            const btnTextColor = document.getElementById('hexExtraBtnTextColor').value || '#ffffff';
+            const btnFontSize = document.getElementById('extraBtnFontSize').value || 13;
+            const btnPadding = document.getElementById('extraBtnPadding').value || 10;
+
+            renderExtra.innerHTML = `
+                <div style="color: ${textColor}; font-size: ${textSize}px; line-height: 1.6;">${text}</div>
+                ${showBtn && btnUrl ? `
+                <div style="margin-top: 16px; text-align: ${extraBtnAlign};">
+                    <a href="${btnUrl}" target="_blank" style="display: inline-block; background: ${btnBg}; color: ${btnTextColor}; font-size: ${btnFontSize}px; padding: ${btnPadding}px ${parseInt(btnPadding)*2}px; text-decoration: none; border-radius: 6px; font-weight: 500;">${btnText}</a>
+                </div>` : ''}
+            `;
         }
 
         function updateFooter() {
@@ -1183,7 +1643,11 @@
         }
 
         function generateFullHTML() {
+            const showHeaderImg = document.getElementById('headerShowImg').checked;
             const headerImg = document.getElementById('headerImgUrl').value || 'https://picsum.photos/700/250?random=header';
+            const headerImgHeight = document.getElementById('headerImgHeight').value || 240;
+            const headerImgShape = document.getElementById('headerImgShape').value || '6px';
+
             const headerTitle = document.getElementById('headerTitle').value;
             const headerDesc = document.getElementById('headerDesc').value;
             const footerOrg = document.getElementById('footerOrg').value;
@@ -1193,8 +1657,29 @@
             const headerDescSize = document.getElementById('headerDescSize').value || 15;
             const cardTitleSize = document.getElementById('cardTitleSize').value || 16;
             const cardDescSize = document.getElementById('cardDescSize').value || 13;
+            
+            const cardBtnFontSize = document.getElementById('cardBtnFontSize').value || 12;
+            const cardBtnPadding = document.getElementById('cardBtnPadding').value || 8;
+
             const footerTextSize = document.getElementById('footerTextSize').value || 13;
             const footerCopyrightSize = document.getElementById('footerCopyrightSize').value || 11;
+
+            const showBodyImg = document.getElementById('bodyShowImg').checked;
+            const cardImgHeight = document.getElementById('cardImgHeight').value || 140;
+            const cardImgShape = document.getElementById('cardImgShape').value || '0px';
+
+            // Extra section data
+            const showExtra = document.getElementById('showExtraSection').checked;
+            const extraText = document.getElementById('extraText').value;
+            const extraTextColor = document.getElementById('hexExtraTextColor').value || '#09090b';
+            const extraTextSize = document.getElementById('extraTextSize').value || 14;
+            const showExtraBtn = document.getElementById('showExtraBtn').checked;
+            const extraBtnText = document.getElementById('extraBtnText').value;
+            const extraBtnUrl = document.getElementById('extraBtnUrl').value;
+            const extraBtnBg = document.getElementById('hexExtraBtnBg').value || '#18181b';
+            const extraBtnTextColor = document.getElementById('hexExtraBtnTextColor').value || '#ffffff';
+            const extraBtnFontSize = document.getElementById('extraBtnFontSize').value || 13;
+            const extraBtnPadding = document.getElementById('extraBtnPadding').value || 10;
 
             let linksHtml = '';
             if (linksRaw) {
@@ -1214,19 +1699,28 @@
                     const cardIndex = i + j;
                     if (cardIndex < cards.length) {
                         const card = cards[cardIndex];
+                        let cardImgStyle = `width: 100%; height: ${cardImgHeight}px; object-fit: cover; display: block; border-radius: ${cardImgShape};`;
+                        if (cardImgShape === '50%') cardImgStyle += ` width: ${cardImgHeight}px; margin: 10px auto 0;`;
+
                         cellsHtml += `
                         <td width="${colWidth}%" valign="top" style="padding: 8px;">
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${activeScheme.cardBg || '#ffffff'}; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; text-align: ${bodyAlign};">
-                                ${card.img ? `<tr><td style="padding: 0;"><img src="${card.img}" style="width: 100%; height: 130px; object-fit: cover; display: block;" alt="Card Image"></td></tr>` : ''}
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${activeScheme.cardBg || '#fafafa'}; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; text-align: ${bodyAlign};">
+                                ${showBodyImg && card.img ? `<tr><td style="padding: 0; text-align: center;"><img src="${card.img}" style="${cardImgStyle}" alt="Card Image"></td></tr>` : ''}
                                 <tr>
                                     <td style="padding: 16px;">
                                         <h3 style="margin: 0 0 8px 0; font-size: ${cardTitleSize}px; font-weight: 600; color: ${activeScheme.cardTitle};">${card.title}</h3>
                                         <p style="margin: 0 0 14px 0; font-size: ${cardDescSize}px; color: ${activeScheme.cardDesc}; line-height: 1.5;">${card.desc}</p>
                                         ${card.url ? `
-                                        <table border="0" cellpadding="0" cellspacing="0" ${bodyAlign === 'center' ? 'align="center"' : bodyAlign === 'right' ? 'align="right"' : ''}>
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                             <tr>
-                                                <td align="center" style="border-radius: 4px; background-color: ${activeScheme.btnBg};">
-                                                    <a href="${card.url}" target="_blank" style="display: inline-block; padding: 7px 14px; font-size: 12px; font-weight: 500; color: ${activeScheme.btnText || '#ffffff'}; text-decoration: none;">${card.btnText || 'อ่านเพิ่มเติม'}</a>
+                                                <td align="${cardBtnAlign}">
+                                                    <table border="0" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td align="center" style="border-radius: 4px; background: ${activeScheme.btnBg};">
+                                                                <a href="${card.url}" target="_blank" style="display: inline-block; padding: ${cardBtnPadding}px ${parseInt(cardBtnPadding)*1.8}px; font-size: ${cardBtnFontSize}px; font-weight: 500; color: ${activeScheme.btnText || '#ffffff'}; text-decoration: none;">${card.btnText || 'อ่านเพิ่มเติม'}</a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
                                                 </td>
                                             </tr>
                                         </table>` : ''}
@@ -1240,6 +1734,34 @@
                 }
                 rowsHtml += `<tr>${cellsHtml}</tr>`;
             }
+
+            let extraSectionHtml = '';
+            if (showExtra) {
+                extraSectionHtml = `
+                    <!-- Extra Special Section -->
+                    <tr>
+                        <td style="background-color: ${activeScheme.extraBg || '#ffffff'}; padding: 20px 24px; border-top: 1px solid #e4e4e7; text-align: ${extraAlign};">
+                            <div style="font-size: ${extraTextSize}px; color: ${extraTextColor}; line-height: 1.6;">${extraText}</div>
+                            ${showExtraBtn && extraBtnUrl ? `
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 16px;">
+                                <tr>
+                                    <td align="${extraBtnAlign}">
+                                        <table border="0" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td align="center" style="border-radius: 6px; background: ${extraBtnBg};">
+                                                    <a href="${extraBtnUrl}" target="_blank" style="display: inline-block; padding: ${extraBtnPadding}px ${parseInt(extraBtnPadding)*2}px; font-size: ${extraBtnFontSize}px; font-weight: 500; color: ${extraBtnTextColor}; text-decoration: none;">${extraBtnText}</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>` : ''}
+                        </td>
+                    </tr>`;
+            }
+
+            let headerImgStyle = `max-width: 100%; height: ${headerImgHeight}px; object-fit: cover; border-radius: ${headerImgShape}; margin-bottom: 20px; display: inline-block;`;
+            if (headerImgShape === '50%') headerImgStyle += ` width: ${headerImgHeight}px;`;
 
             return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="th">
@@ -1255,8 +1777,8 @@
                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 650px; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e4e4e7;">
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: ${activeScheme.headerBg}; color: ${activeScheme.headerText}; padding: 32px 24px; text-align: ${headerAlign};">
-                            ${headerImg ? `<img src="${headerImg}" style="max-width: 100%; height: auto; border-radius: 6px; margin-bottom: 20px; display: inline-block;" alt="Header">` : ''}
+                        <td style="background: ${activeScheme.headerBg}; color: ${activeScheme.headerText}; padding: 32px 24px; text-align: ${headerAlign};">
+                            ${showHeaderImg && headerImg ? `<img src="${headerImg}" style="${headerImgStyle}" alt="Header">` : ''}
                             <h1 style="margin: 0 0 10px 0; font-size: ${headerTitleSize}px; font-weight: 600; color: ${activeScheme.headerText}; line-height: 1.3;">${headerTitle}</h1>
                             <p style="margin: 0; font-size: ${headerDescSize}px; opacity: 0.85; color: ${activeScheme.headerText}; line-height: 1.6;">${headerDesc}</p>
                         </td>
@@ -1269,9 +1791,10 @@
                             </table>
                         </td>
                     </tr>
+                    ${extraSectionHtml}
                     <!-- Footer -->
                     <tr>
-                        <td align="center" style="background-color: ${activeScheme.headerBg}; color: ${activeScheme.footerText}; padding: 24px; font-size: ${footerTextSize}px; border-top: 1px solid #e4e4e7; text-align: ${footerAlign};">
+                        <td align="center" style="background: ${activeScheme.headerBg}; color: ${activeScheme.footerText}; padding: 24px; font-size: ${footerTextSize}px; border-top: 1px solid #e4e4e7; text-align: ${footerAlign};">
                             <p style="margin: 0 0 8px 0; font-weight: 600; color: ${activeScheme.footerText}; font-size: ${footerTextSize}px;">${footerOrg}</p>
                             <div style="margin-bottom: 12px;">${linksHtml}</div>
                             <div style="font-size: ${footerCopyrightSize}px; opacity: 0.6; color: ${activeScheme.footerText};">© 2026 Library and Learning Space. All rights reserved.</div>
