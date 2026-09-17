@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Email Template Builder</title>
+    <title>Minimal Email Template Builder Pro</title>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #18181b;
@@ -17,6 +17,7 @@
             --text-main: #09090b;
             --text-muted: #71717a;
             --border-color: #e4e4e7;
+            --sidebar-width: 420px;
         }
 
         * {
@@ -32,23 +33,54 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Sidebar Control Panel */
+        /* Sidebar Control Panel with Toggle Feature */
         .sidebar {
-            width: 420px;
+            width: var(--sidebar-width);
             background: #ffffff;
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             z-index: 10;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed {
+            margin-left: calc(-1 * var(--sidebar-width));
+        }
+
+        /* Sidebar Toggle Button */
+        .sidebar-toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: -36px;
+            width: 36px;
+            height: 36px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            z-index: 20;
+            color: var(--text-main);
         }
 
         .sidebar-header {
-            padding: 24px;
+            padding: 20px 24px;
             background: #ffffff;
             color: var(--text-main);
             border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .sidebar-header h2 {
@@ -66,8 +98,9 @@
             flex: 1;
         }
 
+        /* Collapsible Accordion Styling */
         .accordion-section {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow: hidden;
@@ -81,13 +114,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid transparent;
             font-size: 0.9rem;
             color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .accordion-title:hover {
+            background: #f4f4f5;
+        }
+
+        .accordion-section.active .accordion-title {
+            border-bottom-color: var(--border-color);
+            background: #f4f4f5;
+            font-weight: 600;
+        }
+
+        .accordion-title .arrow-icon {
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .accordion-section.active .accordion-title .arrow-icon {
+            transform: rotate(180deg);
         }
 
         .accordion-body {
+            display: none;
             padding: 16px;
+        }
+
+        .accordion-section.active .accordion-body {
+            display: block;
         }
 
         .form-group {
@@ -144,7 +205,7 @@
             transition: all 0.2s;
         }
 
-        .color-option:hover, .color-option.active {
+        .color-option:hover {
             border-color: var(--primary);
             background: #ffffff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -170,7 +231,7 @@
             color: var(--text-main);
         }
 
-        /* Custom Input Groups */
+        /* Custom Input Groups & Color Pickers */
         .custom-box {
             background: #fafafa;
             border: 1px solid var(--border-color);
@@ -191,9 +252,10 @@
         }
 
         .input-inline-group label {
-            width: 110px;
+            width: 130px;
             margin-bottom: 0;
             font-size: 0.75rem;
+            flex-shrink: 0;
         }
 
         .color-picker-input {
@@ -204,6 +266,7 @@
             border-radius: 4px;
             cursor: pointer;
             background: transparent;
+            flex-shrink: 0;
         }
 
         .size-input-group {
@@ -238,7 +301,7 @@
             border-color: var(--primary);
         }
 
-        /* Layout Grid Options & Custom Input */
+        /* Layout Grid Options */
         .layout-container {
             display: flex;
             flex-direction: column;
@@ -293,19 +356,52 @@
             position: relative;
         }
 
-        .card-item .remove-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 0.85rem;
-            opacity: 0.7;
-            transition: opacity 0.2s;
+        .card-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .card-item .remove-btn:hover {
-            opacity: 1;
+        .card-item-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .card-item-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .action-icon-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .action-icon-btn:hover {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .action-icon-btn.delete-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
         }
 
         .btn {
@@ -326,6 +422,10 @@
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-secondary { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background: #fafafa; }
+        .btn-success { background: #10b981; color: #ffffff; }
+        .btn-success:hover { background: #059669; }
+        .btn-blue { background: #2563eb; color: #ffffff; }
+        .btn-blue:hover { background: #1d4ed8; }
         .btn-dark { background: #09090b; color: #ffffff; }
         .btn-dark:hover { background: #27272a; }
         .btn-full { width: 100%; }
@@ -336,26 +436,34 @@
             display: flex;
             flex-direction: column;
             background: #f4f4f5;
+            overflow: hidden;
         }
 
         .top-bar {
             background: #ffffff;
-            padding: 16px 32px;
+            padding: 14px 28px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 5;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .top-bar h1 {
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .action-btns {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .preview-wrapper {
@@ -370,22 +478,33 @@
             width: 100%;
             max-width: 650px;
             background: #ffffff;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             border-radius: 8px;
             border: 1px solid var(--border-color);
             overflow: hidden;
             align-self: flex-start;
+            transition: background 0.2s;
         }
 
         /* Rendered Email Styling */
         .email-header {
             padding: 32px 24px;
+            transition: background 0.2s;
+        }
+
+        .email-header-img-container {
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
         }
 
         .email-header img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 20px;
+            width: 100%;
+            object-fit: cover;
+            display: block;
+            transition: all 0.2s;
         }
 
         .email-header h1 {
@@ -415,6 +534,15 @@
             }
         }
 
+        /* Clickable Card Link Wrapper */
+        .card-link-wrapper {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
         .content-card {
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -422,12 +550,19 @@
             display: flex;
             flex-direction: column;
             background: #ffffff;
-            transition: background 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            height: 100%;
+        }
+
+        .card-link-wrapper:hover .content-card {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         .content-card img {
             width: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .content-card-body {
@@ -452,12 +587,13 @@
             display: block;
         }
 
-        .content-card-body a {
+        .content-card-body .card-btn {
             display: inline-block;
             text-align: center;
             text-decoration: none;
             border-radius: 4px;
             font-weight: 500;
+            transition: all 0.2s;
         }
 
         .email-extra {
@@ -469,6 +605,7 @@
         .email-footer {
             padding: 24px;
             border-top: 1px solid var(--border-color);
+            transition: background 0.2s;
         }
 
         .email-footer a {
@@ -481,26 +618,20 @@
             opacity: 0.6;
         }
 
-        /* Extra Helpers */
+        /* Extra Text Format Helpers */
         .emoji-bar {
             display: flex;
             gap: 4px;
             margin-bottom: 6px;
             flex-wrap: wrap;
         }
-        .emoji-btn {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            padding: 2px 6px;
-            font-size: 0.85rem;
-        }
+
         .text-format-bar {
             display: flex;
             gap: 4px;
             margin-bottom: 6px;
         }
+
         .format-btn {
             background: #ffffff;
             border: 1px solid var(--border-color);
@@ -511,7 +642,7 @@
             font-weight: 600;
         }
 
-        /* Modal */
+        /* Modal Export HTML */
         .modal {
             display: none;
             position: fixed;
@@ -577,21 +708,44 @@
             justify-content: flex-end;
             gap: 10px;
         }
+
+        /* Toast Alert Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 200;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
 
     <!-- Sidebar Controls -->
-    <div class="sidebar">
+    <div class="sidebar" id="mainSidebar">
+        <!-- Sidebar Toggle Icon Button -->
+        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="ซ่อน/แสดง แถบปรับแต่ง">
+            <i class="fa-solid fa-chevron-left" id="toggleIcon"></i>
+        </button>
+
         <div class="sidebar-header">
             <h2><i class="fa-solid fa-pen-nib"></i> <span>สร้างอีเมลข่าวสาร</span></h2>
         </div>
 
         <div class="sidebar-content">
-            <!-- Theme & Layout Section -->
-            <div class="accordion-section">
-                <div class="accordion-title">
+            <!-- Theme & Layout Section (Collapsible Dropdown) -->
+            <div class="accordion-section active" id="secTheme">
+                <div class="accordion-title" onclick="toggleAccordion('secTheme')">
                     <span><i class="fa-solid fa-sliders"></i> ธีมสีและเลย์เอาต์</span>
+                    <i class="fa-solid fa-chevron-down arrow-icon"></i>
                 </div>
                 <div class="accordion-body">
                     <!-- Preset Color Schemes -->
@@ -608,19 +762,34 @@
                         <label><i class="fa-solid fa-palette"></i> กำหนดสีพื้นหลังส่วนต่างๆ (Custom):</label>
                         <div class="custom-box">
                             <div class="input-inline-group">
+                                <label>สีพื้นหลังแม่แบบหลัก:</label>
+                                <input type="color" id="pickerContainerBg" class="color-picker-input" value="#ffffff" onchange="syncColorInput('containerBg', this.value)">
+                                <input type="text" id="hexContainerBg" class="form-control" value="#ffffff" oninput="updateCustomColor('containerBg', this.value)">
+                            </div>
+                            <div class="input-inline-group">
                                 <label>สีพื้นหลังส่วนหัว:</label>
-                                <input type="color" id="pickerHeaderBg" class="color-picker-input" onchange="syncColorInput('headerBg', this.value)">
-                                <input type="text" id="hexHeaderBg" class="form-control" placeholder="#18181b" oninput="updateCustomColor('headerBg', this.value)">
+                                <input type="color" id="pickerHeaderBg" class="color-picker-input" value="#18181b" onchange="syncColorInput('headerBg', this.value)">
+                                <input type="text" id="hexHeaderBg" class="form-control" value="#18181b" oninput="updateCustomColor('headerBg', this.value)">
                             </div>
                             <div class="input-inline-group">
                                 <label>สีพื้นหลังเนื้อหาหลัก:</label>
-                                <input type="color" id="pickerBodyBg" class="color-picker-input" onchange="syncColorInput('bodyBg', this.value)">
-                                <input type="text" id="hexBodyBg" class="form-control" placeholder="#ffffff" oninput="updateCustomColor('bodyBg', this.value)">
+                                <input type="color" id="pickerBodyBg" class="color-picker-input" value="#ffffff" onchange="syncColorInput('bodyBg', this.value)">
+                                <input type="text" id="hexBodyBg" class="form-control" value="#ffffff" oninput="updateCustomColor('bodyBg', this.value)">
                             </div>
                             <div class="input-inline-group">
                                 <label>สีปุ่มกด (Button):</label>
-                                <input type="color" id="pickerBtnBg" class="color-picker-input" onchange="syncColorInput('btnBg', this.value)">
-                                <input type="text" id="hexBtnBg" class="form-control" placeholder="#18181b" oninput="updateCustomColor('btnBg', this.value)">
+                                <input type="color" id="pickerBtnBg" class="color-picker-input" value="#18181b" onchange="syncColorInput('btnBg', this.value)">
+                                <input type="text" id="hexBtnBg" class="form-control" value="#18181b" oninput="updateCustomColor('btnBg', this.value)">
+                            </div>
+                            <div class="input-inline-group">
+                                <label>สีตัวอักษรบนปุ่มกด:</label>
+                                <input type="color" id="pickerBtnTextColor" class="color-picker-input" value="#ffffff" onchange="syncColorInput('btnTextColor', this.value)">
+                                <input type="text" id="hexBtnTextColor" class="form-control" value="#ffffff" oninput="updateCustomColor('btnTextColor', this.value)">
+                            </div>
+                            <div class="input-inline-group">
+                                <label>สีพื้นหลังส่วนท้าย (Footer):</label>
+                                <input type="color" id="pickerFooterBg" class="color-picker-input" value="#ffffff" onchange="syncColorInput('footerBg', this.value)">
+                                <input type="text" id="hexFooterBg" class="form-control" value="#ffffff" oninput="updateCustomColor('footerBg', this.value)">
                             </div>
                         </div>
                     </div>
@@ -630,10 +799,10 @@
                         <label>จำนวนกล่องเนื้อหาต่อแถว (ส่วนที่ 2):</label>
                         <div class="layout-container">
                             <div class="layout-options">
-                                <button class="layout-btn active" onclick="setLayout(1)">1</button>
-                                <button class="layout-btn" onclick="setLayout(2)">2</button>
-                                <button class="layout-btn" onclick="setLayout(3)">3</button>
-                                <button class="layout-btn" onclick="setLayout(4)">4</button>
+                                <button class="layout-btn active" id="btnCol1" onclick="setLayout(1)">1</button>
+                                <button class="layout-btn" id="btnCol2" onclick="setLayout(2)">2</button>
+                                <button class="layout-btn" id="btnCol3" onclick="setLayout(3)">3</button>
+                                <button class="layout-btn" id="btnCol4" onclick="setLayout(4)">4</button>
                             </div>
                             <div class="custom-layout-input">
                                 <span>ระบุตัวเลขเอง:</span>
@@ -645,10 +814,11 @@
                 </div>
             </div>
 
-            <!-- Section 1: Header -->
-            <div class="accordion-section">
-                <div class="accordion-title">
+            <!-- Section 1: Header (Collapsible Dropdown) -->
+            <div class="accordion-section" id="secHeader">
+                <div class="accordion-title" onclick="toggleAccordion('secHeader')">
                     <span><i class="fa-solid fa-heading"></i> ส่วนที่ 1: ส่วนหัวของอีเมล</span>
+                    <i class="fa-solid fa-chevron-down arrow-icon"></i>
                 </div>
                 <div class="accordion-body">
                     <div class="form-group">
@@ -684,11 +854,11 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>ตั้งค่ารูปภาพส่วนหัว:</label>
+                        <label>ตั้งค่ารูปภาพส่วนหัว (Fixed Cover Banner):</label>
                         <div class="size-input-group">
                             <div>
-                                <label style="font-size:0.7rem;">ความสูงรูปภาพ (px):</label>
-                                <input type="number" id="headerImgHeight" class="form-control" value="240" min="50" max="800" oninput="updateHeader()">
+                                <label style="font-size:0.7rem;">ความสูงรูปภาพสูงสุด (px):</label>
+                                <input type="number" id="headerImgHeight" class="form-control" value="220" min="50" max="800" oninput="updateHeader()">
                             </div>
                             <div>
                                 <label style="font-size:0.7rem;">ทรงรูปภาพ:</label>
@@ -702,147 +872,95 @@
                     </div>
                     <div class="form-group">
                         <label>ลิงก์รูปภาพปก (URL) หรืออัปโหลด:</label>
-                        <input type="text" class="form-control" id="headerImgUrl" placeholder="https://..." oninput="updateHeader()">
+                        <input type="text" class="form-control" id="headerImgUrl" value="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1000" placeholder="https://..." oninput="updateHeader()">
                         <input type="file" class="form-control" id="headerImgFile" accept="image/*" style="margin-top:6px;" onchange="handleFileUpload(event, 'headerImgUrl', updateHeader)">
                     </div>
                     <div class="form-group">
                         <label>หัวข้อเรื่องหลัก:</label>
-                        <div class="emoji-bar" id="headerTitleEmoji"></div>
                         <div class="text-format-bar">
                             <button class="format-btn" onclick="formatText('headerTitle', 'bold')">B</button>
                             <button class="format-btn" onclick="formatText('headerTitle', 'italic')"><i>I</i></button>
-                            <button class="format-btn" onclick="formatText('headerTitle', 'thin')">W</button>
                         </div>
                         <input type="text" class="form-control" id="headerTitle" value="จดหมายข่าวห้องสมุดประจำเดือน" oninput="updateHeader()">
                     </div>
                     <div class="form-group">
                         <label>เนื้อหาเกริ่นนำ:</label>
-                        <div class="emoji-bar" id="headerDescEmoji"></div>
                         <div class="text-format-bar">
                             <button class="format-btn" onclick="formatText('headerDesc', 'bold')">B</button>
                             <button class="format-btn" onclick="formatText('headerDesc', 'italic')"><i>I</i></button>
-                            <button class="format-btn" onclick="formatText('headerDesc', 'thin')">W</button>
                         </div>
                         <textarea class="form-control" id="headerDesc" oninput="updateHeader()">ยินดีต้อนรับสู่จดหมายข่าวสารดิจิทัล แหล่งรวมข้อมูล ความรู้ และกิจกรรมใหม่ๆ สำหรับสมาชิกทุกท่าน</textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 2: Content Cards -->
-            <div class="accordion-section">
-                <div class="accordion-title">
+            <!-- Section 2: Content Cards (Collapsible Dropdown) -->
+            <div class="accordion-section" id="secBody">
+                <div class="accordion-title" onclick="toggleAccordion('secBody')">
                     <span><i class="fa-solid fa-layer-group"></i> ส่วนที่ 2: ส่วนเนื้อหาหลัก</span>
+                    <i class="fa-solid fa-chevron-down arrow-icon"></i>
                 </div>
                 <div class="accordion-body">
-                    <!-- เพิ่มส่วนปรับสีพื้นหลังของการ์ดเนื้อหา -->
                     <div class="form-group">
                         <label>สีพื้นหลังกล่องเนื้อหา (Card Background):</label>
                         <div class="input-inline-group">
-                            <input type="color" id="pickerCardBgColor" class="color-picker-input" value="#fafafa" onchange="syncCardBgColor(this.value)">
-                            <input type="text" id="hexCardBgColor" class="form-control" value="#fafafa" oninput="updateCardBgColor(this.value)">
+                            <input type="color" id="pickerCardBgColor" class="color-picker-input" value="#ffffff" onchange="syncCardBgColor(this.value)">
+                            <input type="text" id="hexCardBgColor" class="form-control" value="#ffffff" oninput="updateCardBgColor(this.value)">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>การแสดงผลรูปภาพในส่วนนี้ทั้งหมด:</label>
-                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="bodyShowImg" checked onchange="updateBody()"> แสดงรูปภาพเนื้อหา</label>
+                        <label>สีตัวอักษรกล่องเนื้อหา:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerBodyTextColor" class="color-picker-input" value="#09090b" onchange="syncTextColor('bodyText', this.value)">
+                            <input type="text" id="hexBodyTextColor" class="form-control" value="#09090b" oninput="updateTextColor('bodyText', this.value)">
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>ตั้งค่าขนาดและทรงรูปภาพในกล่องเนื้อหา:</label>
+                        <label>ขนาดตัวอักษรกล่องเนื้อหา (px):</label>
                         <div class="size-input-group">
                             <div>
-                                <label style="font-size:0.7rem;">ความสูงรูปภาพ (px):</label>
-                                <input type="number" id="cardImgHeight" class="form-control" value="140" min="40" max="600" oninput="updateBody()">
+                                <label style="font-size:0.7rem;">หัวข้อกล่อง:</label>
+                                <input type="number" id="cardTitleSize" class="form-control" value="16" min="10" max="36" oninput="renderCards()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem;">เนื้อหากล่อง:</label>
+                                <input type="number" id="cardDescSize" class="form-control" value="14" min="10" max="28" oninput="renderCards()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ตั้งค่ารูปภาพประกอบข่าว (Fixed Image Aspect):</label>
+                        <div class="size-input-group">
+                            <div>
+                                <label style="font-size:0.7rem;">ความสูงรูปภาพสูงสุด (px):</label>
+                                <input type="number" id="cardImgHeight" class="form-control" value="150" min="50" max="600" oninput="renderCards()">
                             </div>
                             <div>
                                 <label style="font-size:0.7rem;">ทรงรูปภาพ:</label>
-                                <select id="cardImgShape" class="form-control" onchange="updateBody()">
+                                <select id="cardImgShape" class="form-control" onchange="renderCards()">
+                                    <option value="6px">มุมมนปกติ</option>
                                     <option value="0px">มุมเหลี่ยม</option>
-                                    <option value="8px">มุมมน</option>
                                     <option value="50%">วงกลม</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>การจัดวางข้อความในกล่อง (Align):</label>
-                        <div class="align-btn-group">
-                            <button class="align-btn active" id="bodyAlignLeft" onclick="setBodyAlign('left')"><i class="fa-solid fa-align-left"></i></button>
-                            <button class="align-btn" id="bodyAlignCenter" onclick="setBodyAlign('center')"><i class="fa-solid fa-align-center"></i></button>
-                            <button class="align-btn" id="bodyAlignRight" onclick="setBodyAlign('right')"><i class="fa-solid fa-align-right"></i></button>
-                        </div>
-                    </div>
-                    <!-- ปุ่มกดปรับการจัดวางและขนาดภาพรวม ของส่วนที่ 2 -->
-                    <div class="form-group">
-                        <label>การจัดวางปุ่มกดในกล่อง (Align):</label>
-                        <div class="align-btn-group">
-                            <button class="align-btn active" id="cardBtnAlignLeft" onclick="setCardBtnAlign('left')"><i class="fa-solid fa-align-left"></i></button>
-                            <button class="align-btn" id="cardBtnAlignCenter" onclick="setCardBtnAlign('center')"><i class="fa-solid fa-align-center"></i></button>
-                            <button class="align-btn" id="cardBtnAlignRight" onclick="setCardBtnAlign('right')"><i class="fa-solid fa-align-right"></i></button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ขนาดปุ่มในกล่อง / ระยะขอบ (px):</label>
-                        <div class="size-input-group">
-                            <div>
-                                <label style="font-size:0.7rem;">ขนาดตัวอักษรปุ่ม:</label>
-                                <input type="number" id="cardBtnFontSize" class="form-control" value="12" min="10" max="24" oninput="updateBody()">
-                            </div>
-                            <div>
-                                <label style="font-size:0.7rem;">ระยะขอบปุ่ม (Padding):</label>
-                                <input type="number" id="cardBtnPadding" class="form-control" value="8" min="4" max="30" oninput="updateBody()">
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label>สีตัวอักษรหัวข้อกล่องเนื้อหา:</label>
-                        <div class="input-inline-group">
-                            <input type="color" id="pickerCardTitleColor" class="color-picker-input" value="#09090b" onchange="syncTextColor('cardTitle', this.value)">
-                            <input type="text" id="hexCardTitleColor" class="form-control" value="#09090b" oninput="updateTextColor('cardTitle', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>สีตัวอักษรเนื้อหากล่อง:</label>
-                        <div class="input-inline-group">
-                            <input type="color" id="pickerCardDescColor" class="color-picker-input" value="#71717a" onchange="syncTextColor('cardDesc', this.value)">
-                            <input type="text" id="hexCardDescColor" class="form-control" value="#71717a" oninput="updateTextColor('cardDesc', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ขนาดตัวอักษรในกล่อง (px):</label>
-                        <div class="size-input-group">
-                            <div>
-                                <label style="font-size:0.7rem;">หัวข้อกล่อง:</label>
-                                <input type="number" id="cardTitleSize" class="form-control" value="16" min="12" max="40" oninput="updateBody()">
-                            </div>
-                            <div>
-                                <label style="font-size:0.7rem;">รายละเอียด:</label>
-                                <input type="number" id="cardDescSize" class="form-control" value="13" min="10" max="30" oninput="updateBody()">
-                            </div>
-                        </div>
-                    </div>
-                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 16px 0;">
-                    <div id="cardList"></div>
-                    <button class="btn btn-secondary btn-full" onclick="addCard()"><i class="fa-solid fa-plus"></i> เพิ่มกล่องเนื้อหา</button>
+                    <div id="cardsControlList"></div>
+
+                    <button class="btn btn-secondary btn-full" onclick="addCard()"><i class="fa-solid fa-plus"></i> เพิ่มกล่องเนื้อหาข่าวสารใหม่</button>
                 </div>
             </div>
 
-            <!-- Custom Extra Section (Between Body & Footer) -->
-            <div class="accordion-section">
-                <div class="accordion-title">
-                    <span><i class="fa-solid fa-star"></i> ส่วนแทรกพิเศษ (ข้อมูลเฉพาะ)</span>
+            <!-- Section 3: Extra Announcement Box (Collapsible Dropdown) -->
+            <div class="accordion-section" id="secExtra">
+                <div class="accordion-title" onclick="toggleAccordion('secExtra')">
+                    <span><i class="fa-solid fa-bullhorn"></i> ส่วนที่ 3: กล่องข้อความพิเศษ</span>
+                    <i class="fa-solid fa-chevron-down arrow-icon"></i>
                 </div>
                 <div class="accordion-body">
                     <div class="form-group">
-                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="showExtraSection" onchange="updateExtraSection()"> แสดงส่วนแทรกพิเศษนี้</label>
-                    </div>
-                    <!-- เพิ่มส่วนปรับสีพื้นหลังของส่วนแทรกพิเศษ -->
-                    <div class="form-group">
-                        <label>สีพื้นหลังส่วนแทรกพิเศษ:</label>
-                        <div class="input-inline-group">
-                            <input type="color" id="pickerExtraBgColor" class="color-picker-input" value="#ffffff" onchange="syncExtraColor('bg', this.value)">
-                            <input type="text" id="hexExtraBgColor" class="form-control" value="#ffffff" oninput="updateExtraColor('bg', this.value)">
-                        </div>
+                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="showExtraSection" checked onchange="updateExtra()"> แสดงส่วนกล่องข้อความพิเศษ</label>
                     </div>
                     <div class="form-group">
                         <label>การจัดวางข้อความ (Align):</label>
@@ -853,79 +971,77 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>สีตัวอักษรเนื้อหา:</label>
+                        <label>สีตัวอักษรกล่องพิเศษ:</label>
                         <div class="input-inline-group">
-                            <input type="color" id="pickerExtraTextColor" class="color-picker-input" value="#09090b" onchange="syncExtraColor('text', this.value)">
-                            <input type="text" id="hexExtraTextColor" class="form-control" value="#09090b" oninput="updateExtraColor('text', this.value)">
+                            <input type="color" id="pickerExtraTextColor" class="color-picker-input" value="#09090b" onchange="syncTextColor('extraText', this.value)">
+                            <input type="text" id="hexExtraTextColor" class="form-control" value="#09090b" oninput="updateTextColor('extraText', this.value)">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>ขนาดตัวอักษรเนื้อหา (px):</label>
-                        <input type="number" id="extraTextSize" class="form-control" value="14" min="10" max="36" oninput="updateExtraSection()">
-                    </div>
-                    <div class="form-group">
-                        <label>ข้อความเนื้อหาเฉพาะกิจ:</label>
-                        <div class="emoji-bar" id="extraTextEmoji"></div>
-                        <div class="text-format-bar">
-                            <button class="format-btn" onclick="formatText('extraText', 'bold')">B</button>
-                            <button class="format-btn" onclick="formatText('extraText', 'italic')"><i>I</i></button>
-                            <button class="format-btn" onclick="formatText('extraText', 'thin')">W</button>
-                        </div>
-                        <textarea class="form-control" id="extraText" oninput="updateExtraSection()">📌 หมายเหตุพิเศษ: สำหรับท่านที่ต้องการลงทะเบียนเข้าร่วมกิจกรรมอบรมเชิงปฏิบัติการ กรุณากดปุ่มด้านล่างเพื่อยืนยันสิทธิ์ล่วงหน้า</textarea>
-                    </div>
-                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 16px 0;">
-                    <div class="form-group">
-                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="showExtraBtn" checked onchange="updateExtraSection()"> แสดงปุ่มกดเฉพาะ</label>
-                    </div>
-                    <div class="form-group">
-                        <label>การจัดวางปุ่มกด (Align):</label>
-                        <div class="align-btn-group">
-                            <button class="align-btn" id="extraBtnAlignLeft" onclick="setExtraBtnAlign('left')"><i class="fa-solid fa-align-left"></i></button>
-                            <button class="align-btn active" id="extraBtnAlignCenter" onclick="setExtraBtnAlign('center')"><i class="fa-solid fa-align-center"></i></button>
-                            <button class="align-btn" id="extraBtnAlignRight" onclick="setExtraBtnAlign('right')"><i class="fa-solid fa-align-right"></i></button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>การปรับแต่งปุ่มกด:</label>
-                        <div class="input-inline-group">
-                            <label>สีพื้นปุ่ม:</label>
-                            <input type="color" id="pickerExtraBtnBg" class="color-picker-input" value="#18181b" onchange="syncExtraColor('btnBg', this.value)">
-                            <input type="text" id="hexExtraBtnBg" class="form-control" value="#18181b" oninput="updateExtraColor('btnBg', this.value)">
-                        </div>
-                        <div class="input-inline-group" style="margin-top:6px;">
-                            <label>สีข้อความปุ่ม:</label>
-                            <input type="color" id="pickerExtraBtnTextColor" class="color-picker-input" value="#ffffff" onchange="syncExtraColor('btnText', this.value)">
-                            <input type="text" id="hexExtraBtnTextColor" class="form-control" value="#ffffff" oninput="updateExtraColor('btnText', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ขนาดปุ่ม / ขนาดตัวอักษรปุ่ม (px):</label>
+                        <label>ขนาดตัวอักษรกล่องพิเศษ (px):</label>
                         <div class="size-input-group">
                             <div>
-                                <label style="font-size:0.7rem;">ขนาดตัวอักษร:</label>
-                                <input type="number" id="extraBtnFontSize" class="form-control" value="13" min="10" max="24" oninput="updateExtraSection()">
+                                <label style="font-size:0.7rem;">หัวข้อกล่อง:</label>
+                                <input type="number" id="extraTitleSize" class="form-control" value="18" min="10" max="36" oninput="updateExtra()">
                             </div>
                             <div>
-                                <label style="font-size:0.7rem;">ระยะขอบปุ่ม (Padding):</label>
-                                <input type="number" id="extraBtnPadding" class="form-control" value="10" min="4" max="30" oninput="updateExtraSection()">
+                                <label style="font-size:0.7rem;">เนื้อหากล่อง:</label>
+                                <input type="number" id="extraDescSize" class="form-control" value="14" min="10" max="28" oninput="updateExtra()">
                             </div>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สีพื้นหลังกล่องประกาศพิเศษ:</label>
+                        <div class="input-inline-group">
+                            <input type="color" id="pickerExtraBg" class="color-picker-input" value="#f4f4f5" onchange="syncColorInput('extraBg', this.value)">
+                            <input type="text" id="hexExtraBg" class="form-control" value="#f4f4f5" oninput="updateCustomColor('extraBg', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>หัวข้อประกาศพิเศษ:</label>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatText('extraTitle', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatText('extraTitle', 'italic')"><i>I</i></button>
+                        </div>
+                        <input type="text" class="form-control" id="extraTitle" value="📌 ประกาศสำคัญเพิ่มเติม" oninput="updateExtra()">
+                    </div>
+                    <div class="form-group">
+                        <label>เนื้อหาประกาศพิเศษ:</label>
+                        <div class="emoji-bar">
+                            <button class="format-btn" onclick="insertEmoji('extraDesc', '📢')">📢</button>
+                            <button class="format-btn" onclick="insertEmoji('extraDesc', '⭐')">⭐</button>
+                            <button class="format-btn" onclick="insertEmoji('extraDesc', '🔥')">🔥</button>
+                            <button class="format-btn" onclick="insertEmoji('extraDesc', '💡')">💡</button>
+                            <button class="format-btn" onclick="insertEmoji('extraDesc', '✅')">✅</button>
+                            <button class="format-btn" onclick="insertEmoji('extraDesc', '🎉')">🎉</button>
+                        </div>
+                        <div class="text-format-bar">
+                            <button class="format-btn" onclick="formatText('extraDesc', 'bold')">B</button>
+                            <button class="format-btn" onclick="formatText('extraDesc', 'italic')"><i>I</i></button>
+                        </div>
+                        <textarea class="form-control" id="extraDesc" oninput="updateExtra()">ห้องสมุดจะปิดทำการปรับปรุงระบบบริการยืม-คืนหนังสือชั่วคราว ในวันอาทิตย์นี้ ตั้งแต่เวลา 13:00 - 17:00 น. ขออภัยในความไม่สะดวก</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>การแสดงผลปุ่มกด:</label>
+                        <label style="font-size:0.85rem; cursor:pointer;"><input type="checkbox" id="showExtraBtn" checked onchange="updateExtra()"> แสดงปุ่มในกล่องข้อความพิเศษ</label>
                     </div>
                     <div class="form-group">
                         <label>ข้อความบนปุ่ม:</label>
-                        <input type="text" class="form-control" id="extraBtnText" value="🔗 ลงทะเบียนเข้าร่วมงาน" oninput="updateExtraSection()">
+                        <input type="text" class="form-control" id="extraBtnText" value="อ่านรายละเอียดเพิ่มเติม" oninput="updateExtra()">
                     </div>
                     <div class="form-group">
-                        <label>ลิงก์ปุ่มกด (URL):</label>
-                        <input type="text" class="form-control" id="extraBtnUrl" value="https://example.com/register" oninput="updateExtraSection()">
+                        <label>แนบลิงก์สำหรับปุ่ม (URL):</label>
+                        <input type="text" class="form-control" id="extraBtnUrl" value="https://example.com" placeholder="https://..." oninput="updateExtra()">
                     </div>
                 </div>
             </div>
 
-            <!-- Section 3: Footer & Contact -->
-            <div class="accordion-section">
-                <div class="accordion-title">
-                    <span><i class="fa-solid fa-globe"></i> ส่วนที่ 3: ส่วนท้ายและการติดต่อ</span>
+            <!-- Section 4: Footer (Collapsible Dropdown) -->
+            <div class="accordion-section" id="secFooter">
+                <div class="accordion-title" onclick="toggleAccordion('secFooter')">
+                    <span><i class="fa-solid fa-shoe-prints"></i> ส่วนที่ 4: ส่วนท้าย (Footer)</span>
+                    <i class="fa-solid fa-chevron-down arrow-icon"></i>
                 </div>
                 <div class="accordion-body">
                     <div class="form-group">
@@ -939,898 +1055,997 @@
                     <div class="form-group">
                         <label>สีตัวอักษรส่วนท้าย:</label>
                         <div class="input-inline-group">
-                            <input type="color" id="pickerFooterTextColor" class="color-picker-input" value="#ffffff" onchange="syncTextColor('footerText', this.value)">
-                            <input type="text" id="hexFooterTextColor" class="form-control" value="#ffffff" oninput="updateTextColor('footerText', this.value)">
+                            <input type="color" id="pickerFooterTextColor" class="color-picker-input" value="#71717a" onchange="syncTextColor('footerText', this.value)">
+                            <input type="text" id="hexFooterTextColor" class="form-control" value="#71717a" oninput="updateTextColor('footerText', this.value)">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>ขนาดตัวอักษรส่วนท้าย (px):</label>
-                        <div class="size-input-group">
-                            <div>
-                                <label style="font-size:0.7rem;">ชื่อหน่วยงาน/ลิงก์:</label>
-                                <input type="number" id="footerTextSize" class="form-control" value="13" min="10" max="28" oninput="updateFooter()">
-                            </div>
-                            <div>
-                                <label style="font-size:0.7rem;">Copyright:</label>
-                                <input type="number" id="footerCopyrightSize" class="form-control" value="11" min="8" max="24" oninput="updateFooter()">
-                            </div>
-                        </div>
+                        <label>ข้อความท้ายอีเมล:</label>
+                        <textarea class="form-control" id="footerText" oninput="updateFooter()">หากท่านไม่ต้องการรับข่าวสารนี้ สามารถยกเลิกการติดตามได้ตลอดเวลา</textarea>
                     </div>
                     <div class="form-group">
-                        <label>ชื่อหน่วยงาน / ส่วนท้าย:</label>
-                        <input type="text" class="form-control" id="footerOrg" value="Library and Learning Space" oninput="updateFooter()">
+                        <label>ข้อความสงวนลิขสิทธิ์ (Copyright):</label>
+                        <input type="text" class="form-control" id="footerCopyright" value="© 2026 Central Library. All rights reserved." oninput="updateFooter()">
                     </div>
+
                     <div class="form-group">
-                        <label>แนบลิงก์การติดต่อ (ชื่อ|URL แยกด้วย ,):</label>
-                        <input type="text" class="form-control" id="footerLinks" value="เว็บไซต์|https://example.com, ติดต่อเรา|https://example.com/contact" oninput="updateFooter()">
+                        <label>ลิงก์ส่วนท้าย (คั่นด้วยเครื่องหมายจุลภาค , เช่น หน้าหลัก|https://site.com, ยกเลิกรับข่าวสาร|https://cancel.com):</label>
+                        <textarea class="form-control" id="footerLinksInput" rows="3" oninput="updateFooter()">หน้าหลัก|https://example.com, ยกเลิกการรับข่าวสาร|https://example.com/unsubscribe, นโยบายความเป็นส่วนตัว|https://example.com/privacy</textarea>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Preview Area -->
+    <!-- Main Live Preview Canvas -->
     <div class="main-container">
         <div class="top-bar">
-            <h1><i class="fa-regular fa-eye"></i> ตัวอย่างอีเมล (Live Preview)</h1>
+            <h1><i class="fa-solid fa-eye"></i> ตัวอย่างอีเมล (Live Interactive Preview)</h1>
             <div class="action-btns">
-                <button class="btn btn-secondary" onclick="showHtmlModal()"><i class="fa-solid fa-code"></i> คัดลอก HTML</button>
-                <button class="btn btn-dark" onclick="downloadHtml()"><i class="fa-solid fa-download"></i> ดาวน์โหลด .html</button>
+                <!-- เพิ่มระบบบันทึกงาน และดาวน์โหลด HTML -->
+                <button class="btn btn-secondary" onclick="saveDraft()" title="บันทึกไว้กลับมาทำต่อ"><i class="fa-solid fa-floppy-disk"></i> บันทึกร่าง</button>
+                <button class="btn btn-secondary" onclick="loadDraft()" title="โหลดงานที่บันทึกไว้"><i class="fa-solid fa-folder-open"></i> โหลดร่าง</button>
+                <button class="btn btn-secondary" onclick="resetTemplate()"><i class="fa-solid fa-rotate-left"></i> รีเซ็ต</button>
+                <button class="btn btn-primary" onclick="exportHTML()"><i class="fa-solid fa-code"></i> ส่งออกรหัส HTML</button>
+                <button class="btn btn-blue" onclick="downloadHTMLFile()"><i class="fa-solid fa-download"></i> ดาวน์โหลด HTML</button>
             </div>
         </div>
 
         <div class="preview-wrapper">
             <div class="email-container" id="emailContainer">
-                <div class="email-header" id="renderHeader"></div>
-                <div class="email-body" id="renderEmailBody">
-                    <div class="content-grid" id="renderBody"></div>
+                <!-- Section 1 Header -->
+                <div class="email-header" id="renderHeader">
+                    <div class="email-header-img-container" id="renderHeaderImgWrap">
+                        <img id="renderHeaderImg" src="" alt="Header Banner">
+                    </div>
+                    <h1 id="renderHeaderTitle"></h1>
+                    <p id="renderHeaderDesc"></p>
                 </div>
-                <div class="email-extra" id="renderExtra"></div>
-                <div class="email-footer" id="renderFooter"></div>
+
+                <!-- Section 2 Content Grid -->
+                <div class="email-body" id="renderBody">
+                    <div class="content-grid" id="renderGrid"></div>
+                </div>
+
+                <!-- Section 3 Announcement Box -->
+                <div class="email-extra" id="renderExtra">
+                    <h3 id="renderExtraTitle" style="font-weight:600; margin-bottom:8px;"></h3>
+                    <p id="renderExtraDesc" style="line-height:1.6;"></p>
+                    <div id="renderExtraBtnWrap" style="margin-top:16px;">
+                        <a id="renderExtraBtn" href="#" style="display:inline-block; padding:10px 20px; text-decoration:none; border-radius:4px; font-weight:500;"></a>
+                    </div>
+                </div>
+
+                <!-- Section 4 Footer -->
+                <div class="email-footer" id="renderFooter">
+                    <p id="renderFooterText" style="font-size:0.82rem; margin-bottom:10px;"></p>
+                    <div id="renderFooterLinks" style="font-size:0.82rem; margin-bottom:8px;"></div>
+                    <div class="copyright" id="renderFooterCopyright" style="font-size:0.75rem;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal for HTML Code -->
-    <div class="modal" id="htmlModal">
+    <!-- HTML Export Modal -->
+    <div class="modal" id="exportModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>โค้ด HTML สำหรับนำไปใช้ส่งอีเมล</h3>
-                <span style="cursor:pointer; opacity: 0.6;" onclick="closeHtmlModal()"><i class="fa-solid fa-xmark"></i></span>
+                <h3><i class="fa-solid fa-code"></i> รหัสโค้ด HTML พร้อมใช้งาน (Production Ready HTML)</h3>
+                <button class="action-icon-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body">
-                <textarea id="htmlCodeOutput" readonly></textarea>
+                <textarea id="htmlOutputCode" readonly></textarea>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeHtmlModal()">ปิด</button>
-                <button class="btn btn-dark" onclick="copyToClipboard()">คัดลอกโค้ด</button>
+                <button class="btn btn-secondary" onclick="closeModal()">ปิดหน้าต่าง</button>
+                <button class="btn btn-blue" onclick="downloadHTMLFile()"><i class="fa-solid fa-download"></i> ดาวน์โหลดไฟล์ HTML</button>
+                <button class="btn btn-success" onclick="copyHTMLCode()"><i class="fa-solid fa-copy"></i> คัดลอก Code</button>
             </div>
         </div>
+    </div>
+
+    <!-- Toast Alert Notification -->
+    <div class="toast-notification" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg">คัดลอกรหัส HTML สำเร็จแล้ว!</span>
     </div>
 
     <script>
-        // Preset Color Schemes (10 Minimal + 10 Gradient)
-        const minimalSchemes = [
-            { id: 'minimal-dark', name: 'Monochrome Dark', headerBg: '#18181b', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fafafa', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#18181b', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#ffffff' },
-            { id: 'minimal-gray', name: 'Soft Slate', headerBg: '#f4f4f5', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#27272a', btnText: '#ffffff', footerText: '#09090b', extraBg: '#fafafa' },
-            { id: 'minimal-blue', name: 'Deep Navy', headerBg: '#0f172a', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f8fafc' },
-            { id: 'minimal-sage', name: 'Warm Sage', headerBg: '#2e3a31', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f6f7f6', cardTitle: '#1c241e', cardDesc: '#5c6b60', btnBg: '#2e3a31', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f6f7f6' },
-            { id: 'minimal-sand', name: 'Warm Beige', headerBg: '#fefcf8', headerText: '#1c1917', bodyBg: '#fdfbf7', cardBg: '#fafaf9', cardTitle: '#1c1917', cardDesc: '#78716c', btnBg: '#292524', btnText: '#ffffff', footerText: '#1c1917', extraBg: '#fafaf9' },
-            { id: 'minimal-clean', name: 'Pure White', headerBg: '#ffffff', headerText: '#09090b', bodyBg: '#ffffff', cardBg: '#ffffff', cardTitle: '#09090b', cardDesc: '#71717a', btnBg: '#09090b', btnText: '#ffffff', footerText: '#09090b', extraBg: '#fafafa' },
-            { id: 'minimal-charcoal', name: 'Charcoal', headerBg: '#334155', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f8fafc', cardTitle: '#1e293b', cardDesc: '#64748b', btnBg: '#334155', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f8fafc' },
-            { id: 'minimal-taupe', name: 'Neutral Taupe', headerBg: '#44403c', headerText: '#ffffff', bodyBg: '#fafaf9', cardBg: '#ffffff', cardTitle: '#292524', cardDesc: '#78716c', btnBg: '#44403c', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#ffffff' },
-            { id: 'minimal-olive', name: 'Muted Olive', headerBg: '#3f4e4f', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f5f5f5', cardTitle: '#2c3639', cardDesc: '#6a787a', btnBg: '#2c3639', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f5f5f5' },
-            { id: 'minimal-ash', name: 'Ash Gray', headerBg: '#e2e8f0', headerText: '#0f172a', bodyBg: '#f8fafc', cardBg: '#ffffff', cardTitle: '#0f172a', cardDesc: '#64748b', btnBg: '#0f172a', btnText: '#ffffff', footerText: '#0f172a', extraBg: '#ffffff' }
+        // Preset Color Schemes (20 Total)
+        const presetColors = [
+            // Minimalist Themes (10)
+            { name: "Slate Mono", containerBg: "#ffffff", headerBg: "#18181b", bodyBg: "#ffffff", cardBg: "#fafafa", btnBg: "#18181b", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#09090b", extraBg: "#f4f4f5", extraText: "#09090b", footerText: "#71717a" },
+            { name: "Clean Cream", containerBg: "#fdfbf7", headerBg: "#4a3e3d", bodyBg: "#fdfbf7", cardBg: "#ffffff", btnBg: "#4a3e3d", btnText: "#ffffff", footerBg: "#fdfbf7", headerText: "#ffffff", bodyText: "#2c221e", extraBg: "#f4efe6", extraText: "#2c221e", footerText: "#8c7a6b" },
+            { name: "Soft Sage", containerBg: "#f4f7f4", headerBg: "#2d3a2e", bodyBg: "#f4f7f4", cardBg: "#ffffff", btnBg: "#3a4d3c", btnText: "#ffffff", footerBg: "#f4f7f4", headerText: "#ffffff", bodyText: "#1a241b", extraBg: "#e3ebe3", extraText: "#1a241b", footerText: "#657867" },
+            { name: "Warm Taupe", containerBg: "#f9f8f6", headerBg: "#3d3532", bodyBg: "#f9f8f6", cardBg: "#ffffff", btnBg: "#5c504c", btnText: "#ffffff", footerBg: "#f9f8f6", headerText: "#ffffff", bodyText: "#2b2523", extraBg: "#efece8", extraText: "#2b2523", footerText: "#7a6e69" },
+            { name: "Nordic Blue", containerBg: "#f0f4f8", headerBg: "#1e293b", bodyBg: "#f0f4f8", cardBg: "#ffffff", btnBg: "#334155", btnText: "#ffffff", footerBg: "#f0f4f8", headerText: "#ffffff", bodyText: "#0f172a", extraBg: "#e2e8f0", extraText: "#0f172a", footerText: "#64748b" },
+            { name: "Pure Sand", containerBg: "#f5f2eb", headerBg: "#292524", bodyBg: "#f5f2eb", cardBg: "#ffffff", btnBg: "#44403c", btnText: "#ffffff", footerBg: "#f5f2eb", headerText: "#ffffff", bodyText: "#1c1917", extraBg: "#e7e2d7", extraText: "#1c1917", footerText: "#78716c" },
+            { name: "Olive Ash", containerBg: "#f6f7f5", headerBg: "#272a24", bodyBg: "#f6f7f5", cardBg: "#ffffff", btnBg: "#3b4036", btnText: "#ffffff", footerBg: "#f6f7f5", headerText: "#ffffff", bodyText: "#191c17", extraBg: "#e8eae5", extraText: "#191c17", footerText: "#6e7568" },
+            { name: "Muted Lavender", containerBg: "#f8f7fa", headerBg: "#2e2a36", bodyBg: "#f8f7fa", cardBg: "#ffffff", btnBg: "#484254", btnText: "#ffffff", footerBg: "#f8f7fa", headerText: "#ffffff", bodyText: "#1d1a24", extraBg: "#eceaf0", extraText: "#1d1a24", footerText: "#726b80" },
+            { name: "Clay Charcoal", containerBg: "#f7f5f4", headerBg: "#262322", bodyBg: "#f7f5f4", cardBg: "#ffffff", btnBg: "#403b39", btnText: "#ffffff", footerBg: "#f7f5f4", headerText: "#ffffff", bodyText: "#171514", extraBg: "#eae6e5", extraText: "#171514", footerText: "#736d6b" },
+            { name: "Modern Paper", containerBg: "#ffffff", headerBg: "#000000", bodyBg: "#ffffff", cardBg: "#ffffff", btnBg: "#000000", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#111111", extraBg: "#f2f2f2", extraText: "#111111", footerText: "#666666" },
+
+            // Vibrant & Gradient Accent Themes (10)
+            { name: "Emerald Mint", containerBg: "#f0fdf4", headerBg: "linear-gradient(135deg, #059669, #10b981)", bodyBg: "#ffffff", cardBg: "#f0fdf4", btnBg: "#059669", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#064e3b", extraBg: "#dcfce7", extraText: "#064e3b", footerText: "#047857" },
+            { name: "Ocean Gradient", containerBg: "#f0f9ff", headerBg: "linear-gradient(135deg, #0284c7, #06b6d4)", bodyBg: "#ffffff", cardBg: "#f0f9ff", btnBg: "#0284c7", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#0c4a6e", extraBg: "#e0f2fe", extraText: "#0c4a6e", footerText: "#0369a1" },
+            { name: "Sunset Crimson", containerBg: "#fff1f2", headerBg: "linear-gradient(135deg, #e11d48, #f43f5e)", bodyBg: "#ffffff", cardBg: "#fff1f2", btnBg: "#e11d48", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#4c0519", extraBg: "#ffe4e6", extraText: "#4c0519", footerText: "#be123c" },
+            { name: "Violet Spark", containerBg: "#f5f3ff", headerBg: "linear-gradient(135deg, #7c3aed, #a855f7)", bodyBg: "#ffffff", cardBg: "#f5f3ff", btnBg: "#7c3aed", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#2e1065", extraBg: "#ede9fe", extraText: "#2e1065", footerText: "#6d28d9" },
+            { name: "Amber Glow", containerBg: "#fffbeb", headerBg: "linear-gradient(135deg, #d97706, #f59e0b)", bodyBg: "#ffffff", cardBg: "#fffbeb", btnBg: "#d97706", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#451a03", extraBg: "#fef3c7", extraText: "#451a03", footerText: "#b45309" },
+            { name: "Midnight Neon", containerBg: "#09090b", headerBg: "linear-gradient(135deg, #18181b, #27272a)", bodyBg: "#09090b", cardBg: "#18181b", btnBg: "#3b82f6", btnText: "#ffffff", footerBg: "#09090b", headerText: "#ffffff", bodyText: "#f4f4f5", extraBg: "#27272a", extraText: "#ffffff", footerText: "#a1a1aa" },
+            { name: "Rose Quartz", containerBg: "#fff1f2", headerBg: "linear-gradient(135deg, #f43f5e, #fb7185)", bodyBg: "#ffffff", cardBg: "#fff1f2", btnBg: "#f43f5e", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#4c0519", extraBg: "#ffe4e6", extraText: "#4c0519", footerText: "#e11d48" },
+            { name: "Teal Breeze", containerBg: "#f0fdfa", headerBg: "linear-gradient(135deg, #0d9488, #14b8a6)", bodyBg: "#ffffff", cardBg: "#f0fdfa", btnBg: "#0d9488", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#134e4a", extraBg: "#ccfbf1", extraText: "#134e4a", footerText: "#0f766e" },
+            { name: "Deep Indigo", containerBg: "#eef2ff", headerBg: "linear-gradient(135deg, #4338ca, #6366f1)", bodyBg: "#ffffff", cardBg: "#eef2ff", btnBg: "#4338ca", btnText: "#ffffff", footerBg: "#ffffff", headerText: "#ffffff", bodyText: "#1e1b4b", extraBg: "#e0e7ff", extraText: "#1e1b4b", footerText: "#3730a3" },
+            { name: "Cyber Punk", containerBg: "#020617", headerBg: "linear-gradient(135deg, #ec4899, #8b5cf6)", bodyBg: "#020617", cardBg: "#0f172a", btnBg: "#ec4899", btnText: "#ffffff", footerBg: "#020617", headerText: "#ffffff", bodyText: "#f8fafc", extraBg: "#1e1b4b", extraText: "#ffffff", footerText: "#94a3b8" }
         ];
 
-        const gradientSchemes = [
-            { id: 'grad-sunset', name: 'Sunset Glow', headerBg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fffaf8', cardTitle: '#4a2c2a', cardDesc: '#7a5a58', btnBg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#fffaf8' },
-            { id: 'grad-ocean', name: 'Ocean Wave', headerBg: 'linear-gradient(135deg, #2b5876, #4e4376)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f5f8fa', cardTitle: '#1e2d3b', cardDesc: '#5a6e7f', btnBg: 'linear-gradient(135deg, #2b5876, #4e4376)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f5f8fa' },
-            { id: 'grad-aurora', name: 'Aurora Neon', headerBg: 'linear-gradient(135deg, #00c6ff, #0072ff)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f0f9ff', cardTitle: '#032b45', cardDesc: '#416a85', btnBg: 'linear-gradient(135deg, #00c6ff, #0072ff)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f0f9ff' },
-            { id: 'grad-peach', name: 'Peach Velvet', headerBg: 'linear-gradient(135deg, #ed4264, #ffedbc)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fffbf7', cardTitle: '#3d252a', cardDesc: '#73575c', btnBg: 'linear-gradient(135deg, #ed4264, #ffedbc)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#fffbf7' },
-            { id: 'grad-emerald', name: 'Emerald Forest', headerBg: 'linear-gradient(135deg, #11998e, #38ef7d)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f2fcf7', cardTitle: '#0f382a', cardDesc: '#486e60', btnBg: 'linear-gradient(135deg, #11998e, #38ef7d)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f2fcf7' },
-            { id: 'grad-purple', name: 'Berry Galaxy', headerBg: 'linear-gradient(135deg, #8e2de2, #4a00e0)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f9f5ff', cardTitle: '#270845', cardDesc: '#5e417d', btnBg: 'linear-gradient(135deg, #8e2de2, #4a00e0)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f9f5ff' },
-            { id: 'grad-fire', name: 'Flaming Orange', headerBg: 'linear-gradient(135deg, #f12711, #f5af19)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fffdf9', cardTitle: '#3d1606', cardDesc: '#7a4f3b', btnBg: 'linear-gradient(135deg, #f12711, #f5af19)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#fffdf9' },
-            { id: 'grad-candy', name: 'Cotton Candy', headerBg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#fff9fb', cardTitle: '#421a2b', cardDesc: '#754d5e', btnBg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', btnText: '#421a2b', footerText: '#ffffff', extraBg: '#fff9fb' },
-            { id: 'grad-midnight', name: 'Midnight Glow', headerBg: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#f4f7f8', cardTitle: '#0f2027', cardDesc: '#506670', btnBg: 'linear-gradient(135deg, #0f2027, #2c5364)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#f4f7f8' },
-            { id: 'grad-rose', name: 'Rose Gold', headerBg: 'linear-gradient(135deg, #f43b47, #453a94)', headerText: '#ffffff', bodyBg: '#ffffff', cardBg: '#faf9fc', cardTitle: '#1f1938', cardDesc: '#5b537a', btnBg: 'linear-gradient(135deg, #f43b47, #453a94)', btnText: '#ffffff', footerText: '#ffffff', extraBg: '#faf9fc' }
-        ];
-
-        const emojis = ['✨', '📌', '📢', '🔥', '🎉', '💡', '📚', '🚀', '❤️', '✅', '⭐', '🎁'];
-
-        let activeScheme = {...minimalSchemes[0]};
-        let currentColumns = 2;
-
-        // Alignments
-        let headerAlign = 'left';
-        let bodyAlign = 'left';
-        let cardBtnAlign = 'left';
-        let extraAlign = 'left';
-        let extraBtnAlign = 'center';
-        let footerAlign = 'center';
-
+        // Sample Initial Cards Data
         let cards = [
             {
-                img: 'https://picsum.photos/400/200?random=1',
-                title: 'SDG หมวดที่ 1',
-                desc: 'ยุติความยากจนทุกรูปแบบในทุกที่ — End poverty in all its forms everywhere.',
-                btnText: 'อ่านเพิ่มเติม',
-                url: 'https://library.bu.ac.th/sdgs/'
+                title: "กิจกรรมเสวนายามบ่าย: เทคโนโลยี AI กับอนาคต",
+                desc: "ขอเชิญทุกท่านร่วมรับฟังการบรรยายพิเศษจากผู้เชี่ยวชาญในวงการดิจิทัล เพื่อทำความเข้าใจเกี่ยวกับปัญญาประดิษฐ์ในชีวิตประจำวัน",
+                img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600",
+                link: "https://example.com/event1",
+                btnText: "ลงทะเบียนเข้าร่วม"
             },
             {
-                img: 'https://picsum.photos/400/200?random=2',
-                title: 'SDG หมวดที่ 2',
-                desc: 'ยุติความหิวโหย บรรลุความมั่นคงทางอาหาร ยกระดับโภชนาการ และส่งเสริมเกษตรกรรมที่ยั่งยืน — End hunger, achieve food security, improve nutrition and promote sustainable agriculture.',
-                btnText: 'อ่านเพิ่มเติม',
-                url: 'https://library.bu.ac.th/sdgs/'
+                title: "แนะนำหนังสือใหม่ประจำสัปดาห์ที่ไม่ควรพลาด",
+                desc: "รวบรวมหนังสือขายดีและนวนิยายยอดนิยม ตรวจสอบรายชื่อหนังสือใหม่พร้อมเปิดให้จองคิวยืมอ่านได้แล้ววันนี้ผ่านระบบออนไลน์",
+                img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600",
+                link: "https://example.com/books",
+                btnText: "ดูรายชื่อหนังสือ"
             }
         ];
 
-        window.onload = function() {
-            initEmojiPalettes();
-            renderColorPickers();
-            renderCardInputs();
-            syncCustomColorInputs();
-            updateHeader();
-            updateBody();
-            updateExtraSection();
-            updateFooter();
-            applyTheme();
-        };
+        let currentLayoutCols = 2;
+        let headerAlign = 'left';
+        let extraAlign = 'left';
+        let footerAlign = 'center';
 
-        function initEmojiPalettes() {
-            const targets = ['headerTitleEmoji', 'headerDescEmoji', 'extraTextEmoji'];
-            targets.forEach(id => {
-                const container = document.getElementById(id);
-                if (!container) return;
-                const fieldId = id.replace('Emoji', '');
-                emojis.forEach(emo => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'emoji-btn';
-                    btn.innerText = emo;
-                    btn.onclick = () => insertAtCursor(fieldId, emo);
-                    container.appendChild(btn);
-                });
+        // Initialize App UI
+        window.addEventListener('DOMContentLoaded', () => {
+            initColorPaletteGrids();
+            renderCardsControls();
+            updateAll();
+        });
+
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            const icon = document.getElementById('toggleIcon');
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.className = 'fa-solid fa-chevron-right';
+            } else {
+                icon.className = 'fa-solid fa-chevron-left';
+            }
+        }
+
+        // Accordion Dropdown
+        function toggleAccordion(secId) {
+            const sec = document.getElementById(secId);
+            sec.classList.toggle('active');
+        }
+
+        // Initialize Preset Grids
+        function initColorPaletteGrids() {
+            const minGrid = document.getElementById('minimalColorGrid');
+            const gradGrid = document.getElementById('gradientColorGrid');
+
+            presetColors.forEach((p, index) => {
+                const item = document.createElement('div');
+                item.className = 'color-option';
+                item.onclick = () => applyPresetScheme(index);
+
+                const prev = document.createElement('div');
+                prev.className = 'color-preview';
+                
+                const s1 = document.createElement('span');
+                s1.style.background = p.headerBg;
+                const s2 = document.createElement('span');
+                s2.style.background = p.containerBg;
+
+                prev.appendChild(s1);
+                prev.appendChild(s2);
+
+                const name = document.createElement('span');
+                name.className = 'color-name';
+                name.innerText = p.name;
+
+                item.appendChild(prev);
+                item.appendChild(name);
+
+                if (index < 10) {
+                    minGrid.appendChild(item);
+                } else {
+                    gradGrid.appendChild(item);
+                }
             });
         }
 
-        function insertAtCursor(fieldId, text) {
-            const el = document.getElementById(fieldId);
-            if (!el) return;
-            const start = el.selectionStart || el.value.length;
-            const end = el.selectionEnd || el.value.length;
-            el.value = el.value.substring(0, start) + text + el.value.substring(end);
-            el.focus();
-            el.selectionStart = el.selectionEnd = start + text.length;
+        // Apply Preset Scheme
+        function applyPresetScheme(idx) {
+            const p = presetColors[idx];
+            document.getElementById('pickerContainerBg').value = fixHex(p.containerBg);
+            document.getElementById('hexContainerBg').value = p.containerBg;
+            document.getElementById('emailContainer').style.background = p.containerBg;
 
-            if (fieldId.startsWith('header')) updateHeader();
-            else if (fieldId.startsWith('extra')) updateExtraSection();
+            document.getElementById('pickerHeaderBg').value = fixHex(p.headerBg);
+            document.getElementById('hexHeaderBg').value = p.headerBg;
+            document.getElementById('renderHeader').style.background = p.headerBg;
+
+            document.getElementById('pickerBodyBg').value = fixHex(p.bodyBg);
+            document.getElementById('hexBodyBg').value = p.bodyBg;
+            document.getElementById('renderBody').style.background = p.bodyBg;
+
+            document.getElementById('pickerCardBgColor').value = fixHex(p.cardBg);
+            document.getElementById('hexCardBgColor').value = p.cardBg;
+
+            document.getElementById('pickerBtnBg').value = fixHex(p.btnBg);
+            document.getElementById('hexBtnBg').value = p.btnBg;
+
+            document.getElementById('pickerBtnTextColor').value = fixHex(p.btnText);
+            document.getElementById('hexBtnTextColor').value = p.btnText;
+
+            document.getElementById('pickerFooterBg').value = fixHex(p.footerBg);
+            document.getElementById('hexFooterBg').value = p.footerBg;
+            document.getElementById('renderFooter').style.background = p.footerBg;
+
+            document.getElementById('pickerHeaderTextColor').value = fixHex(p.headerText);
+            document.getElementById('hexHeaderTextColor').value = p.headerText;
+            document.getElementById('renderHeader').style.color = p.headerText;
+
+            document.getElementById('pickerBodyTextColor').value = fixHex(p.bodyText);
+            document.getElementById('hexBodyTextColor').value = p.bodyText;
+
+            document.getElementById('pickerExtraBg').value = fixHex(p.extraBg);
+            document.getElementById('hexExtraBg').value = p.extraBg;
+            document.getElementById('renderExtra').style.background = p.extraBg;
+
+            document.getElementById('pickerExtraTextColor').value = fixHex(p.extraText);
+            document.getElementById('hexExtraTextColor').value = p.extraText;
+            document.getElementById('renderExtra').style.color = p.extraText;
+
+            document.getElementById('pickerFooterTextColor').value = fixHex(p.footerText);
+            document.getElementById('hexFooterTextColor').value = p.footerText;
+            document.getElementById('renderFooter').style.color = p.footerText;
+
+            renderCards();
+            updateExtra();
         }
 
-        function formatText(fieldId, type) {
-            const el = document.getElementById(fieldId);
-            if (!el) return;
-            const start = el.selectionStart;
-            const end = el.selectionEnd;
-            const sel = el.value.substring(start, end) || 'ข้อความ';
-            let formatted = sel;
-
-            if (type === 'bold') formatted = `<b>${sel}</b>`;
-            else if (type === 'italic') formatted = `<i>${sel}</i>`;
-            else if (type === 'thin') formatted = `<span style="font-weight:300;">${sel}</span>`;
-
-            el.value = el.value.substring(0, start) + formatted + el.value.substring(end);
-            el.focus();
-
-            if (fieldId.startsWith('header')) updateHeader();
-            else if (fieldId.startsWith('extra')) updateExtraSection();
+        function fixHex(val) {
+            return val.startsWith('#') && val.length === 7 ? val : '#18181b';
         }
 
-        function renderColorPickers() {
-            const minGrid = document.getElementById('minimalColorGrid');
-            const gradGrid = document.getElementById('gradientColorGrid');
-            minGrid.innerHTML = '';
-            gradGrid.innerHTML = '';
-
-            minimalSchemes.forEach(scheme => minGrid.appendChild(createSchemeOption(scheme)));
-            gradientSchemes.forEach(scheme => gradGrid.appendChild(createSchemeOption(scheme)));
-        }
-
-        function createSchemeOption(scheme) {
-            const option = document.createElement('div');
-            option.className = `color-option ${scheme.id === activeScheme.id ? 'active' : ''}`;
-            option.onclick = () => selectColorScheme(scheme);
-            option.innerHTML = `
-                <div class="color-preview">
-                    <span style="background: ${scheme.headerBg}"></span>
-                    <span style="background: ${scheme.btnBg}"></span>
-                </div>
-                <span class="color-name">${scheme.name}</span>
-            `;
-            return option;
-        }
-
-        function selectColorScheme(scheme) {
-            activeScheme = {...scheme};
-            renderColorPickers();
-            syncCustomColorInputs();
-            applyTheme();
-        }
-
-        function syncCustomColorInputs() {
-            document.getElementById('pickerHeaderBg').value = normalizeHex(activeScheme.headerBg);
-            document.getElementById('hexHeaderBg').value = activeScheme.headerBg;
-
-            document.getElementById('pickerBodyBg').value = normalizeHex(activeScheme.bodyBg);
-            document.getElementById('hexBodyBg').value = activeScheme.bodyBg;
-
-            document.getElementById('pickerBtnBg').value = normalizeHex(activeScheme.btnBg);
-            document.getElementById('hexBtnBg').value = activeScheme.btnBg;
-
-            document.getElementById('pickerHeaderTextColor').value = normalizeHex(activeScheme.headerText);
-            document.getElementById('hexHeaderTextColor').value = activeScheme.headerText;
-
-            document.getElementById('pickerCardBgColor').value = normalizeHex(activeScheme.cardBg || '#fafafa');
-            document.getElementById('hexCardBgColor').value = activeScheme.cardBg || '#fafafa';
-
-            document.getElementById('pickerExtraBgColor').value = normalizeHex(activeScheme.extraBg || '#ffffff');
-            document.getElementById('hexExtraBgColor').value = activeScheme.extraBg || '#ffffff';
-
-            document.getElementById('pickerCardTitleColor').value = normalizeHex(activeScheme.cardTitle);
-            document.getElementById('hexCardTitleColor').value = activeScheme.cardTitle;
-
-            document.getElementById('pickerCardDescColor').value = normalizeHex(activeScheme.cardDesc);
-            document.getElementById('hexCardDescColor').value = activeScheme.cardDesc;
-
-            document.getElementById('pickerFooterTextColor').value = normalizeHex(activeScheme.footerText);
-            document.getElementById('hexFooterTextColor').value = activeScheme.footerText;
-        }
-
-        function syncColorInput(key, val) {
-            if (key === 'headerBg') {
+        function syncColorInput(type, val) {
+            if (type === 'containerBg') {
+                document.getElementById('hexContainerBg').value = val;
+                document.getElementById('emailContainer').style.background = val;
+            } else if (type === 'headerBg') {
                 document.getElementById('hexHeaderBg').value = val;
-                activeScheme.headerBg = val;
-            } else if (key === 'bodyBg') {
+                document.getElementById('renderHeader').style.background = val;
+            } else if (type === 'bodyBg') {
                 document.getElementById('hexBodyBg').value = val;
-                activeScheme.bodyBg = val;
-            } else if (key === 'btnBg') {
+                document.getElementById('renderBody').style.background = val;
+            } else if (type === 'btnBg') {
                 document.getElementById('hexBtnBg').value = val;
-                activeScheme.btnBg = val;
+                renderCards();
+                updateExtra();
+            } else if (type === 'btnTextColor') {
+                document.getElementById('hexBtnTextColor').value = val;
+                renderCards();
+                updateExtra();
+            } else if (type === 'footerBg') {
+                document.getElementById('hexFooterBg').value = val;
+                document.getElementById('renderFooter').style.background = val;
+            } else if (type === 'extraBg') {
+                document.getElementById('hexExtraBg').value = val;
+                document.getElementById('renderExtra').style.background = val;
             }
-            activeScheme.id = 'custom';
-            renderColorPickers();
-            applyTheme();
         }
 
-        function updateCustomColor(key, val) {
-            if (key === 'headerBg') {
-                activeScheme.headerBg = val;
-                if (isValidHex(val)) document.getElementById('pickerHeaderBg').value = val;
-            } else if (key === 'bodyBg') {
-                activeScheme.bodyBg = val;
-                if (isValidHex(val)) document.getElementById('pickerBodyBg').value = val;
-            } else if (key === 'btnBg') {
-                activeScheme.btnBg = val;
-                if (isValidHex(val)) document.getElementById('pickerBtnBg').value = val;
+        function updateCustomColor(type, val) {
+            if (val.startsWith('#') && val.length === 7) {
+                if (type === 'containerBg') document.getElementById('pickerContainerBg').value = val;
+                if (type === 'headerBg') document.getElementById('pickerHeaderBg').value = val;
+                if (type === 'bodyBg') document.getElementById('pickerBodyBg').value = val;
+                if (type === 'btnBg') document.getElementById('pickerBtnBg').value = val;
+                if (type === 'btnTextColor') document.getElementById('pickerBtnTextColor').value = val;
+                if (type === 'footerBg') document.getElementById('pickerFooterBg').value = val;
+                if (type === 'extraBg') document.getElementById('pickerExtraBg').value = val;
             }
-            activeScheme.id = 'custom';
-            renderColorPickers();
-            applyTheme();
+            syncColorInput(type, val);
         }
 
-        /* ฟังก์ชันปรับสีพื้นหลังของการ์ดเนื้อหา (Card Bg) */
         function syncCardBgColor(val) {
             document.getElementById('hexCardBgColor').value = val;
-            activeScheme.cardBg = val;
-            updateBody();
+            renderCards();
         }
 
         function updateCardBgColor(val) {
-            activeScheme.cardBg = val;
-            if (isValidHex(val)) document.getElementById('pickerCardBgColor').value = val;
-            updateBody();
+            if (val.startsWith('#') && val.length === 7) {
+                document.getElementById('pickerCardBgColor').value = val;
+            }
+            renderCards();
         }
 
-        function syncTextColor(key, val) {
-            if (key === 'headerText') {
+        function syncTextColor(type, val) {
+            if (type === 'headerText') {
                 document.getElementById('hexHeaderTextColor').value = val;
-                activeScheme.headerText = val;
-                updateHeader();
-            } else if (key === 'cardTitle') {
-                document.getElementById('hexCardTitleColor').value = val;
-                activeScheme.cardTitle = val;
-                updateBody();
-            } else if (key === 'cardDesc') {
-                document.getElementById('hexCardDescColor').value = val;
-                activeScheme.cardDesc = val;
-                updateBody();
-            } else if (key === 'footerText') {
-                document.getElementById('hexFooterTextColor').value = val;
-                activeScheme.footerText = val;
-                updateFooter();
-            }
-        }
-
-        function updateTextColor(key, val) {
-            if (key === 'headerText') {
-                activeScheme.headerText = val;
-                if (isValidHex(val)) document.getElementById('pickerHeaderTextColor').value = val;
-                updateHeader();
-            } else if (key === 'cardTitle') {
-                activeScheme.cardTitle = val;
-                if (isValidHex(val)) document.getElementById('pickerCardTitleColor').value = val;
-                updateBody();
-            } else if (key === 'cardDesc') {
-                activeScheme.cardDesc = val;
-                if (isValidHex(val)) document.getElementById('pickerCardDescColor').value = val;
-                updateBody();
-            } else if (key === 'footerText') {
-                activeScheme.footerText = val;
-                if (isValidHex(val)) document.getElementById('pickerFooterTextColor').value = val;
-                updateFooter();
-            }
-        }
-
-        function syncExtraColor(key, val) {
-            if (key === 'bg') {
-                document.getElementById('hexExtraBgColor').value = val;
-                activeScheme.extraBg = val;
-            } else if (key === 'text') {
+                document.getElementById('renderHeader').style.color = val;
+            } else if (type === 'bodyText') {
+                document.getElementById('hexBodyTextColor').value = val;
+                renderCards();
+            } else if (type === 'extraText') {
                 document.getElementById('hexExtraTextColor').value = val;
-            } else if (key === 'btnBg') {
-                document.getElementById('hexExtraBtnBg').value = val;
-            } else if (key === 'btnText') {
-                document.getElementById('hexExtraBtnTextColor').value = val;
+                document.getElementById('renderExtra').style.color = val;
+            } else if (type === 'footerText') {
+                document.getElementById('hexFooterTextColor').value = val;
+                document.getElementById('renderFooter').style.color = val;
             }
-            updateExtraSection();
         }
 
-        function updateExtraColor(key, val) {
-            if (key === 'bg') {
-                activeScheme.extraBg = val;
-                if (isValidHex(val)) document.getElementById('pickerExtraBgColor').value = val;
-            } else if (key === 'text') {
-                if (isValidHex(val)) document.getElementById('pickerExtraTextColor').value = val;
-            } else if (key === 'btnBg') {
-                if (isValidHex(val)) document.getElementById('pickerExtraBtnBg').value = val;
-            } else if (key === 'btnText') {
-                if (isValidHex(val)) document.getElementById('pickerExtraBtnTextColor').value = val;
+        function updateTextColor(type, val) {
+            if (val.startsWith('#') && val.length === 7) {
+                if (type === 'headerText') document.getElementById('pickerHeaderTextColor').value = val;
+                if (type === 'bodyText') document.getElementById('pickerBodyTextColor').value = val;
+                if (type === 'extraText') document.getElementById('pickerExtraTextColor').value = val;
+                if (type === 'footerText') document.getElementById('pickerFooterTextColor').value = val;
             }
-            updateExtraSection();
+            syncTextColor(type, val);
         }
 
-        /* Alignment Functions */
+        // Layout Columns Control
+        function setLayout(cols) {
+            currentLayoutCols = cols;
+            for (let i = 1; i <= 4; i++) {
+                const b = document.getElementById(`btnCol${i}`);
+                if (b) {
+                    if (i === cols) b.classList.add('active');
+                    else b.classList.remove('active');
+                }
+            }
+            document.getElementById('customColInput').value = cols;
+
+            const grid = document.getElementById('renderGrid');
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        }
+
+        // Align Helpers
         function setHeaderAlign(align) {
             headerAlign = align;
-            ['left', 'center', 'right'].forEach(a => {
-                document.getElementById(`headerAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            ['Left', 'Center', 'Right'].forEach(a => {
+                document.getElementById(`headerAlign${a}`).classList.remove('active');
             });
+            document.getElementById(`headerAlign${align.charAt(0).toUpperCase() + align.slice(1)}`).classList.add('active');
             updateHeader();
-        }
-
-        function setBodyAlign(align) {
-            bodyAlign = align;
-            ['left', 'center', 'right'].forEach(a => {
-                document.getElementById(`bodyAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
-            });
-            updateBody();
-        }
-
-        function setCardBtnAlign(align) {
-            cardBtnAlign = align;
-            ['left', 'center', 'right'].forEach(a => {
-                document.getElementById(`cardBtnAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
-            });
-            updateBody();
         }
 
         function setExtraAlign(align) {
             extraAlign = align;
-            ['left', 'center', 'right'].forEach(a => {
-                document.getElementById(`extraAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            ['Left', 'Center', 'Right'].forEach(a => {
+                document.getElementById(`extraAlign${a}`).classList.remove('active');
             });
-            updateExtraSection();
-        }
-
-        function setExtraBtnAlign(align) {
-            extraBtnAlign = align;
-            ['left', 'center', 'right'].forEach(a => {
-                document.getElementById(`extraBtnAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
-            });
-            updateExtraSection();
+            document.getElementById(`extraAlign${align.charAt(0).toUpperCase() + align.slice(1)}`).classList.add('active');
+            updateExtra();
         }
 
         function setFooterAlign(align) {
             footerAlign = align;
-            ['left', 'center', 'right'].forEach(a => {
-                document.getElementById(`footerAlign${a.charAt(0).toUpperCase() + a.slice(1)}`).classList.toggle('active', a === align);
+            ['Left', 'Center', 'Right'].forEach(a => {
+                document.getElementById(`footerAlign${a}`).classList.remove('active');
             });
+            document.getElementById(`footerAlign${align.charAt(0).toUpperCase() + align.slice(1)}`).classList.add('active');
             updateFooter();
         }
 
-        function isValidHex(hex) {
-            return /^#([0-9A-F]{3}){1,2}$/i.test(hex);
-        }
-
-        function normalizeHex(hex) {
-            return isValidHex(hex) ? hex : '#18181b';
-        }
-
-        function applyTheme() {
-            const header = document.getElementById('renderHeader');
-            const renderEmailBody = document.getElementById('renderEmailBody');
-            const footer = document.getElementById('renderFooter');
-
-            header.style.background = activeScheme.headerBg;
-            renderEmailBody.style.background = activeScheme.bodyBg || '#ffffff';
-            footer.style.background = activeScheme.headerBg;
-
-            updateHeader();
-            updateBody();
-            updateExtraSection();
-            updateFooter();
-        }
-
-        function setLayout(cols) {
-            currentColumns = Math.max(1, cols);
-            document.getElementById('customColInput').value = currentColumns;
-            
-            document.querySelectorAll('.layout-btn').forEach((btn, idx) => {
-                btn.classList.toggle('active', idx + 1 === currentColumns);
-            });
-
-            const renderBody = document.getElementById('renderBody');
-            renderBody.style.gridTemplateColumns = `repeat(${currentColumns}, 1fr)`;
-        }
-
+        // File Upload Handler
         function handleFileUpload(event, targetInputId, callback) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById(targetInputId).value = e.target.result;
-                    callback();
+                    if (targetInputId) {
+                        document.getElementById(targetInputId).value = e.target.result;
+                    }
+                    callback(e.target.result);
                 };
                 reader.readAsDataURL(file);
             }
         }
 
+        // Rich Formatting Helpers
+        function insertEmoji(targetId, emoji) {
+            const el = document.getElementById(targetId);
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const text = el.value;
+            el.value = text.substring(0, start) + emoji + text.substring(end);
+            el.focus();
+            el.selectionStart = el.selectionEnd = start + emoji.length;
+            if (targetId === 'extraDesc') updateExtra();
+        }
+
+        function formatText(targetId, type) {
+            const el = document.getElementById(targetId);
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const sel = el.value.substring(start, end);
+            if (!sel) return;
+
+            let tag = type === 'bold' ? '<b>' : '<i>';
+            let closeTag = type === 'bold' ? '</b>' : '</i>';
+            
+            const replacement = tag + sel + closeTag;
+            el.value = el.value.substring(0, start) + replacement + el.value.substring(end);
+            el.focus();
+            
+            if (targetId === 'headerTitle' || targetId === 'headerDesc') updateHeader();
+            if (targetId === 'extraTitle' || targetId === 'extraDesc') updateExtra();
+        }
+
+        // Update Section 1 Header
         function updateHeader() {
             const showImg = document.getElementById('headerShowImg').checked;
-            const imgUrl = document.getElementById('headerImgUrl').value || 'https://picsum.photos/700/250?random=header';
-            const imgHeight = document.getElementById('headerImgHeight').value || 240;
-            const imgShape = document.getElementById('headerImgShape').value || '6px';
+            const imgUrl = document.getElementById('headerImgUrl').value;
+            const imgHeight = document.getElementById('headerImgHeight').value;
+            const imgShape = document.getElementById('headerImgShape').value;
 
             const title = document.getElementById('headerTitle').value;
             const desc = document.getElementById('headerDesc').value;
+            const titleSize = document.getElementById('headerTitleSize').value;
+            const descSize = document.getElementById('headerDescSize').value;
 
-            const titleSize = document.getElementById('headerTitleSize').value || 24;
-            const descSize = document.getElementById('headerDescSize').value || 15;
+            const imgWrap = document.getElementById('renderHeaderImgWrap');
+            const imgEl = document.getElementById('renderHeaderImg');
 
-            const header = document.getElementById('renderHeader');
-            header.style.textAlign = headerAlign;
-            header.style.color = activeScheme.headerText;
+            if (showImg && imgUrl) {
+                imgWrap.style.display = 'flex';
+                imgEl.src = imgUrl;
+                imgEl.style.height = `${imgHeight}px`;
+                imgEl.style.borderRadius = imgShape;
+            } else {
+                imgWrap.style.display = 'none';
+            }
 
-            let imgStyle = `max-width: 100%; height: ${imgHeight}px; object-fit: cover; border-radius: ${imgShape}; margin-bottom: 20px;`;
-            if (imgShape === '50%') imgStyle += ` width: ${imgHeight}px;`;
+            const headerContainer = document.getElementById('renderHeader');
+            headerContainer.style.textAlign = headerAlign;
 
-            header.innerHTML = `
-                ${showImg && imgUrl ? `<img src="${imgUrl}" style="${imgStyle}" alt="Header Image">` : ''}
-                <h1 style="color: ${activeScheme.headerText}; font-size: ${titleSize}px;">${title}</h1>
-                <p style="color: ${activeScheme.headerText}; font-size: ${descSize}px;">${desc}</p>
-            `;
+            const titleEl = document.getElementById('renderHeaderTitle');
+            titleEl.innerHTML = title;
+            titleEl.style.fontSize = `${titleSize}px`;
+
+            const descEl = document.getElementById('renderHeaderDesc');
+            descEl.innerHTML = desc;
+            descEl.style.fontSize = `${descSize}px`;
         }
 
-        function renderCardInputs() {
-            const list = document.getElementById('cardList');
+        // Render Section 2 Cards Controls in Sidebar
+        function renderCardsControls() {
+            const list = document.getElementById('cardsControlList');
             list.innerHTML = '';
 
-            cards.forEach((card, index) => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'card-item';
-                cardDiv.innerHTML = `
-                    <span class="remove-btn" onclick="removeCard(${index})"><i class="fa-solid fa-trash"></i></span>
-                    <strong style="font-size:0.8rem; display:block; margin-bottom:8px; color: var(--text-muted);">กล่องเนื้อหาที่ ${index + 1}</strong>
-                    <div class="form-group">
-                        <label>ลิงก์รูปภาพปก/อัปโหลด:</label>
-                        <input type="text" class="form-control" value="${card.img}" oninput="updateCardData(${index}, 'img', this.value)">
-                        <input type="file" class="form-control" accept="image/*" style="margin-top:4px;" onchange="handleCardFileUpload(event, ${index})">
-                    </div>
-                    <div class="form-group">
-                        <label>หัวข้อเรื่อง:</label>
-                        <div class="emoji-bar" id="cardTitleEmoji_${index}"></div>
-                        <div class="text-format-bar">
-                            <button class="format-btn" onclick="formatCardText(${index}, 'title', 'bold')">B</button>
-                            <button class="format-btn" onclick="formatCardText(${index}, 'title', 'italic')"><i>I</i></button>
-                            <button class="format-btn" onclick="formatCardText(${index}, 'title', 'thin')">W</button>
+            cards.forEach((card, i) => {
+                const item = document.createElement('div');
+                item.className = 'card-item';
+                item.innerHTML = `
+                    <div class="card-item-header">
+                        <span class="card-item-title">กล่องเนื้อหาที่ ${i + 1}</span>
+                        <div class="card-item-actions">
+                            <button class="action-icon-btn" onclick="moveCard(${i}, -1)" title="ย้ายขึ้น"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button class="action-icon-btn" onclick="moveCard(${i}, 1)" title="ย้ายลง"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button class="action-icon-btn delete-btn" onclick="deleteCard(${i})" title="ลบกล่องนี้"><i class="fa-solid fa-trash"></i></button>
                         </div>
-                        <input type="text" class="form-control" id="cardTitle_${index}" value="${card.title}" oninput="updateCardData(${index}, 'title', this.value)">
                     </div>
                     <div class="form-group">
-                        <label>เนื้อหาเกริ่นนำ:</label>
-                        <div class="emoji-bar" id="cardDescEmoji_${index}"></div>
-                        <div class="text-format-bar">
-                            <button class="format-btn" onclick="formatCardText(${index}, 'desc', 'bold')">B</button>
-                            <button class="format-btn" onclick="formatCardText(${index}, 'desc', 'italic')"><i>I</i></button>
-                            <button class="format-btn" onclick="formatCardText(${index}, 'desc', 'thin')">W</button>
-                        </div>
-                        <textarea class="form-control" id="cardDesc_${index}" oninput="updateCardData(${index}, 'desc', this.value)">${card.desc}</textarea>
+                        <label>รูปภาพประกอบ (URL) หรืออัปโหลด:</label>
+                        <input type="text" class="form-control" value="${card.img}" oninput="updateCardData(${i}, 'img', this.value)">
+                        <input type="file" class="form-control" accept="image/*" style="margin-top:4px;" onchange="handleFileUpload(event, null, (url) => updateCardData(${i}, 'img', url))">
                     </div>
                     <div class="form-group">
-                        <label>ข้อความปุ่ม:</label>
-                        <input type="text" class="form-control" value="${card.btnText || 'อ่านเพิ่มเติม'}" oninput="updateCardData(${index}, 'btnText', this.value)">
+                        <label>หัวข้อข่าวสาร:</label>
+                        <input type="text" class="form-control" value="${card.title}" oninput="updateCardData(${i}, 'title', this.value)">
                     </div>
                     <div class="form-group">
-                        <label>ลิงก์เชื่อมโยง (URL):</label>
-                        <input type="text" class="form-control" value="${card.url}" oninput="updateCardData(${index}, 'url', this.value)">
+                        <label>เนื้อหาโดยย่อ:</label>
+                        <textarea class="form-control" oninput="updateCardData(${i}, 'desc', this.value)">${card.desc}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>แนบลิงก์เชื่อมโยง (URL):</label>
+                        <input type="text" class="form-control" value="${card.link}" oninput="updateCardData(${i}, 'link', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>ข้อความบนปุ่มกด:</label>
+                        <input type="text" class="form-control" value="${card.btnText}" oninput="updateCardData(${i}, 'btnText', this.value)">
                     </div>
                 `;
-                list.appendChild(cardDiv);
-
-                ['Title', 'Desc'].forEach(type => {
-                    const emContainer = document.getElementById(`card${type}Emoji_${index}`);
-                    emojis.forEach(emo => {
-                        const btn = document.createElement('button');
-                        btn.type = 'button';
-                        btn.className = 'emoji-btn';
-                        btn.innerText = emo;
-                        btn.onclick = () => {
-                            const inp = document.getElementById(`card${type}_${index}`);
-                            const start = inp.selectionStart || inp.value.length;
-                            inp.value = inp.value.substring(0, start) + emo + inp.value.substring(start);
-                            updateCardData(index, type.toLowerCase(), inp.value);
-                        };
-                        emContainer.appendChild(btn);
-                    });
-                });
+                list.appendChild(item);
             });
         }
 
-        function formatCardText(index, key, type) {
-            const el = document.getElementById(`card${key.charAt(0).toUpperCase() + key.slice(1)}_${index}`);
-            if (!el) return;
-            const start = el.selectionStart;
-            const end = el.selectionEnd;
-            const sel = el.value.substring(start, end) || 'ข้อความ';
-            let formatted = sel;
-
-            if (type === 'bold') formatted = `<b>${sel}</b>`;
-            else if (type === 'italic') formatted = `<i>${sel}</i>`;
-            else if (type === 'thin') formatted = `<span style="font-weight:300;">${sel}</span>`;
-
-            el.value = el.value.substring(0, start) + formatted + el.value.substring(end);
-            updateCardData(index, key, el.value);
-        }
-
-        function handleCardFileUpload(event, index) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    cards[index].img = e.target.result;
-                    renderCardInputs();
-                    updateBody();
-                };
-                reader.readAsDataURL(file);
-            }
+        function updateCardData(index, field, value) {
+            cards[index][field] = value;
+            renderCards();
         }
 
         function addCard() {
             cards.push({
-                img: `https://picsum.photos/400/200?random=${cards.length + 1}`,
-                title: 'หัวข้อใหม่ ' + (cards.length + 1),
-                desc: 'คำอธิบายเพิ่มเติมสำหรับกล่องเนื้อหานี้...',
-                btnText: 'อ่านเพิ่มเติม',
-                url: 'https://example.com'
+                title: "หัวข้อข่าวสารใหม่เพิ่มเติม",
+                desc: "กรอกรายละเอียดเนื้อหาเพิ่มเติมที่ต้องการประชาสัมพันธ์ในส่วนนี้...",
+                img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600",
+                link: "https://example.com",
+                btnText: "อ่านต่อ"
             });
-            renderCardInputs();
-            updateBody();
+            renderCardsControls();
+            renderCards();
         }
 
-        function removeCard(index) {
-            if (cards.length > 1) {
-                cards.splice(index, 1);
-                renderCardInputs();
-                updateBody();
-            } else {
-                alert('ต้องมีอย่างน้อย 1 กล่องเนื้อหา');
+        function deleteCard(index) {
+            if (cards.length <= 1) {
+                alert("ต้องมีกล่องเนื้อหาอย่างน้อย 1 กล่องครับ");
+                return;
             }
+            cards.splice(index, 1);
+            renderCardsControls();
+            renderCards();
         }
 
-        function updateCardData(index, key, value) {
-            cards[index][key] = value;
-            updateBody();
+        function moveCard(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= cards.length) return;
+            const temp = cards[index];
+            cards[index] = cards[newIndex];
+            cards[newIndex] = temp;
+            renderCardsControls();
+            renderCards();
         }
 
-        function updateBody() {
-            const showImg = document.getElementById('bodyShowImg').checked;
-            const imgHeight = document.getElementById('cardImgHeight').value || 140;
-            const imgShape = document.getElementById('cardImgShape').value || '0px';
+        // Render Cards in Preview Grid
+        function renderCards() {
+            const grid = document.getElementById('renderGrid');
+            grid.innerHTML = '';
 
-            const cardTitleSize = document.getElementById('cardTitleSize').value || 16;
-            const cardDescSize = document.getElementById('cardDescSize').value || 13;
+            const cardBg = document.getElementById('hexCardBgColor').value;
+            const bodyTextColor = document.getElementById('hexBodyTextColor').value;
+            const btnBg = document.getElementById('hexBtnBg').value;
+            const btnTextColor = document.getElementById('hexBtnTextColor').value;
 
-            const btnFontSize = document.getElementById('cardBtnFontSize').value || 12;
-            const btnPadding = document.getElementById('cardBtnPadding').value || 8;
-
-            const renderBody = document.getElementById('renderBody');
-            renderBody.innerHTML = '';
+            const titleSize = document.getElementById('cardTitleSize').value;
+            const descSize = document.getElementById('cardDescSize').value;
+            const imgHeight = document.getElementById('cardImgHeight').value;
+            const imgShape = document.getElementById('cardImgShape').value;
 
             cards.forEach(card => {
                 const cardEl = document.createElement('div');
                 cardEl.className = 'content-card';
-                cardEl.style.background = activeScheme.cardBg || '#fafafa';
-                cardEl.style.textAlign = bodyAlign;
+                cardEl.style.background = cardBg;
+                cardEl.style.color = bodyTextColor;
 
-                let imgStyle = `width: 100%; height: ${imgHeight}px; object-fit: cover; border-radius: ${imgShape};`;
-                if (imgShape === '50%') imgStyle += ` width: ${imgHeight}px; margin: 10px auto 0;`;
+                let imgHTML = card.img ? `<img src="${card.img}" style="height:${imgHeight}px; border-radius:${imgShape} ${imgShape} 0 0;" alt="Card Image">` : '';
+                let btnHTML = card.btnText ? `<div class="btn-wrapper"><span class="card-btn" style="background:${btnBg}; color:${btnTextColor}; padding:8px 14px; font-size:0.82rem;">${card.btnText}</span></div>` : '';
 
                 cardEl.innerHTML = `
-                    ${showImg && card.img ? `<img src="${card.img}" style="${imgStyle}" alt="${card.title}">` : ''}
-                    <div class="content-card-body">
-                        <h3 style="color: ${activeScheme.cardTitle}; font-size: ${cardTitleSize}px;">${card.title}</h3>
-                        <p style="color: ${activeScheme.cardDesc}; font-size: ${cardDescSize}px;">${card.desc}</p>
-                        ${card.url ? `
-                        <div class="btn-wrapper" style="text-align: ${cardBtnAlign};">
-                            <a href="${card.url}" target="_blank" style="background: ${activeScheme.btnBg}; color: ${activeScheme.btnText || '#ffffff'}; font-size: ${btnFontSize}px; padding: ${btnPadding}px ${parseInt(btnPadding)*1.8}px;">${card.btnText || 'อ่านเพิ่มเติม'}</a>
-                        </div>` : ''}
-                    </div>
+                    <a href="${card.link || '#'}" target="_blank" class="card-link-wrapper">
+                        ${imgHTML}
+                        <div class="content-card-body">
+                            <h3 style="font-size:${titleSize}px;">${card.title}</h3>
+                            <p style="font-size:${descSize}px;">${card.desc}</p>
+                            ${btnHTML}
+                        </div>
+                    </a>
                 `;
-                renderBody.appendChild(cardEl);
+                grid.appendChild(cardEl);
             });
         }
 
-        function updateExtraSection() {
-            const showExtra = document.getElementById('showExtraSection').checked;
-            const renderExtra = document.getElementById('renderExtra');
+        // Update Section 3 Announcement
+        function updateExtra() {
+            const show = document.getElementById('showExtraSection').checked;
+            const container = document.getElementById('renderExtra');
 
-            if (!showExtra) {
-                renderExtra.style.display = 'none';
+            if (!show) {
+                container.style.display = 'none';
                 return;
             }
 
-            renderExtra.style.display = 'block';
-            renderExtra.style.textAlign = extraAlign;
-            renderExtra.style.background = activeScheme.extraBg || '#ffffff';
+            container.style.display = 'block';
+            container.style.textAlign = extraAlign;
 
-            const text = document.getElementById('extraText').value;
-            const textColor = document.getElementById('hexExtraTextColor').value || '#09090b';
-            const textSize = document.getElementById('extraTextSize').value || 14;
+            const title = document.getElementById('extraTitle').value;
+            const desc = document.getElementById('extraDesc').value;
+
+            const titleSize = document.getElementById('extraTitleSize').value;
+            const descSize = document.getElementById('extraDescSize').value;
 
             const showBtn = document.getElementById('showExtraBtn').checked;
             const btnText = document.getElementById('extraBtnText').value;
             const btnUrl = document.getElementById('extraBtnUrl').value;
-            const btnBg = document.getElementById('hexExtraBtnBg').value || '#18181b';
-            const btnTextColor = document.getElementById('hexExtraBtnTextColor').value || '#ffffff';
-            const btnFontSize = document.getElementById('extraBtnFontSize').value || 13;
-            const btnPadding = document.getElementById('extraBtnPadding').value || 10;
+            const btnBg = document.getElementById('hexBtnBg').value;
+            const btnTextColor = document.getElementById('hexBtnTextColor').value;
 
-            renderExtra.innerHTML = `
-                <div style="color: ${textColor}; font-size: ${textSize}px; line-height: 1.6;">${text}</div>
-                ${showBtn && btnUrl ? `
-                <div style="margin-top: 16px; text-align: ${extraBtnAlign};">
-                    <a href="${btnUrl}" target="_blank" style="display: inline-block; background: ${btnBg}; color: ${btnTextColor}; font-size: ${btnFontSize}px; padding: ${btnPadding}px ${parseInt(btnPadding)*2}px; text-decoration: none; border-radius: 6px; font-weight: 500;">${btnText}</a>
-                </div>` : ''}
-            `;
+            const titleEl = document.getElementById('renderExtraTitle');
+            titleEl.innerHTML = title;
+            titleEl.style.fontSize = `${titleSize}px`;
+
+            const descEl = document.getElementById('renderExtraDesc');
+            descEl.innerHTML = desc;
+            descEl.style.fontSize = `${descSize}px`;
+
+            const btnWrap = document.getElementById('renderExtraBtnWrap');
+            const btnEl = document.getElementById('renderExtraBtn');
+
+            if (showBtn && btnText) {
+                btnWrap.style.display = 'block';
+                btnEl.innerText = btnText;
+                btnEl.href = btnUrl || '#';
+                btnEl.style.background = btnBg;
+                btnEl.style.color = btnTextColor;
+            } else {
+                btnWrap.style.display = 'none';
+            }
         }
 
+        // Update Section 4 Footer
         function updateFooter() {
-            const org = document.getElementById('footerOrg').value;
-            const linksRaw = document.getElementById('footerLinks').value;
-            
-            const textSize = document.getElementById('footerTextSize').value || 13;
-            const copyrightSize = document.getElementById('footerCopyrightSize').value || 11;
+            const container = document.getElementById('renderFooter');
+            container.style.textAlign = footerAlign;
 
-            let linksHtml = '';
-            if (linksRaw) {
-                const linkItems = linksRaw.split(',');
-                linksHtml = linkItems.map(item => {
-                    const [text, url] = item.split('|');
-                    return url ? `<a href="${url.trim()}" target="_blank" style="color: ${activeScheme.footerText}; font-size: ${textSize}px;">${text ? text.trim() : url.trim()}</a>` : '';
-                }).join(' | ');
+            const text = document.getElementById('footerText').value;
+            const copyright = document.getElementById('footerCopyright').value;
+            const linksInput = document.getElementById('footerLinksInput').value;
+
+            document.getElementById('renderFooterText').innerText = text;
+            document.getElementById('renderFooterCopyright').innerText = copyright;
+
+            const linksContainer = document.getElementById('renderFooterLinks');
+            linksContainer.innerHTML = '';
+
+            if (linksInput.trim() !== '') {
+                const linksArray = linksInput.split(',');
+                linksArray.forEach((item, idx) => {
+                    const parts = item.split('|');
+                    const label = parts[0] ? parts[0].trim() : 'ลิงก์';
+                    const url = parts[1] ? parts[1].trim() : '#';
+
+                    const linkEl = document.createElement('a');
+                    linkEl.href = url;
+                    linkEl.target = '_blank';
+                    linkEl.innerText = label;
+                    linkEl.style.color = document.getElementById('hexFooterTextColor').value;
+
+                    linksContainer.appendChild(linkEl);
+                    if (idx < linksArray.length - 1) {
+                        linksContainer.appendChild(document.createTextNode(' | '));
+                    }
+                });
+            }
+        }
+
+        function updateAll() {
+            setLayout(currentLayoutCols);
+            updateHeader();
+            renderCards();
+            updateExtra();
+            updateFooter();
+        }
+
+        // Reset Template
+        function resetTemplate() {
+            if (confirm("คุณต้องการรีเซ็ตการตั้งค่าทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?")) {
+                location.reload();
+            }
+        }
+
+        // Save & Load State Draft (ระบบบันทึกงานไว้ทำต่อ)
+        function saveDraft() {
+            const state = {
+                containerBg: document.getElementById('hexContainerBg').value,
+                headerBg: document.getElementById('hexHeaderBg').value,
+                bodyBg: document.getElementById('hexBodyBg').value,
+                cardBg: document.getElementById('hexCardBgColor').value,
+                btnBg: document.getElementById('hexBtnBg').value,
+                btnTextColor: document.getElementById('hexBtnTextColor').value,
+                footerBg: document.getElementById('hexFooterBg').value,
+                extraBg: document.getElementById('hexExtraBg').value,
+                headerTextColor: document.getElementById('hexHeaderTextColor').value,
+                bodyTextColor: document.getElementById('hexBodyTextColor').value,
+                extraTextColor: document.getElementById('hexExtraTextColor').value,
+                footerTextColor: document.getElementById('hexFooterTextColor').value,
+                
+                headerShowImg: document.getElementById('headerShowImg').checked,
+                headerImgUrl: document.getElementById('headerImgUrl').value,
+                headerImgHeight: document.getElementById('headerImgHeight').value,
+                headerImgShape: document.getElementById('headerImgShape').value,
+                headerTitle: document.getElementById('headerTitle').value,
+                headerDesc: document.getElementById('headerDesc').value,
+                headerTitleSize: document.getElementById('headerTitleSize').value,
+                headerDescSize: document.getElementById('headerDescSize').value,
+                
+                cardTitleSize: document.getElementById('cardTitleSize').value,
+                cardDescSize: document.getElementById('cardDescSize').value,
+                cardImgHeight: document.getElementById('cardImgHeight').value,
+                cardImgShape: document.getElementById('cardImgShape').value,
+                
+                showExtraSection: document.getElementById('showExtraSection').checked,
+                extraTitle: document.getElementById('extraTitle').value,
+                extraDesc: document.getElementById('extraDesc').value,
+                extraTitleSize: document.getElementById('extraTitleSize').value,
+                extraDescSize: document.getElementById('extraDescSize').value,
+                showExtraBtn: document.getElementById('showExtraBtn').checked,
+                extraBtnText: document.getElementById('extraBtnText').value,
+                extraBtnUrl: document.getElementById('extraBtnUrl').value,
+                
+                footerText: document.getElementById('footerText').value,
+                footerCopyright: document.getElementById('footerCopyright').value,
+                footerLinksInput: document.getElementById('footerLinksInput').value,
+                
+                currentLayoutCols,
+                headerAlign,
+                extraAlign,
+                footerAlign,
+                cards
+            };
+
+            localStorage.setItem('newsletter_email_draft', JSON.stringify(state));
+            
+            showToast("บันทึกข้อมูลแบบร่างเรียบร้อยแล้ว!");
+        }
+
+        function loadDraft() {
+            const saved = localStorage.getItem('newsletter_email_draft');
+            if (!saved) {
+                alert("ไม่พบข้อมูลแบบร่างที่เคยบันทึกไว้ครับ");
+                return;
             }
 
-            const footer = document.getElementById('renderFooter');
-            footer.style.textAlign = footerAlign;
-            footer.style.color = activeScheme.footerText;
+            try {
+                const state = JSON.parse(saved);
+                
+                updateCustomColor('containerBg', state.containerBg);
+                updateCustomColor('headerBg', state.headerBg);
+                updateCustomColor('bodyBg', state.bodyBg);
+                updateCardBgColor(state.cardBg);
+                updateCustomColor('btnBg', state.btnBg);
+                updateCustomColor('btnTextColor', state.btnTextColor);
+                updateCustomColor('footerBg', state.footerBg);
+                updateCustomColor('extraBg', state.extraBg);
+                
+                updateTextColor('headerText', state.headerTextColor);
+                updateTextColor('bodyText', state.bodyTextColor);
+                updateTextColor('extraText', state.extraTextColor);
+                updateTextColor('footerText', state.footerTextColor);
 
-            footer.innerHTML = `
-                <p><strong style="color: ${activeScheme.footerText}; font-size: ${textSize}px;">${org}</strong></p>
-                <div style="margin-top: 8px;">${linksHtml}</div>
-                <div class="copyright" style="color: ${activeScheme.footerText}; font-size: ${copyrightSize}px;">© 2026 Library and Learning Space. All rights reserved.</div>
-            `;
+                document.getElementById('headerShowImg').checked = state.headerShowImg;
+                document.getElementById('headerImgUrl').value = state.headerImgUrl;
+                document.getElementById('headerImgHeight').value = state.headerImgHeight;
+                document.getElementById('headerImgShape').value = state.headerImgShape;
+                document.getElementById('headerTitle').value = state.headerTitle;
+                document.getElementById('headerDesc').value = state.headerDesc;
+                document.getElementById('headerTitleSize').value = state.headerTitleSize;
+                document.getElementById('headerDescSize').value = state.headerDescSize;
+
+                document.getElementById('cardTitleSize').value = state.cardTitleSize;
+                document.getElementById('cardDescSize').value = state.cardDescSize;
+                document.getElementById('cardImgHeight').value = state.cardImgHeight;
+                document.getElementById('cardImgShape').value = state.cardImgShape;
+
+                document.getElementById('showExtraSection').checked = state.showExtraSection;
+                document.getElementById('extraTitle').value = state.extraTitle;
+                document.getElementById('extraDesc').value = state.extraDesc;
+                document.getElementById('extraTitleSize').value = state.extraTitleSize;
+                document.getElementById('extraDescSize').value = state.extraDescSize;
+                document.getElementById('showExtraBtn').checked = state.showExtraBtn;
+                document.getElementById('extraBtnText').value = state.extraBtnText;
+                document.getElementById('extraBtnUrl').value = state.extraBtnUrl;
+
+                document.getElementById('footerText').value = state.footerText;
+                document.getElementById('footerCopyright').value = state.footerCopyright;
+                document.getElementById('footerLinksInput').value = state.footerLinksInput;
+
+                setHeaderAlign(state.headerAlign || 'left');
+                setExtraAlign(state.extraAlign || 'left');
+                setFooterAlign(state.footerAlign || 'center');
+
+                cards = state.cards || [];
+                renderCardsControls();
+                setLayout(state.currentLayoutCols || 2);
+                updateAll();
+
+                showToast("โหลดร่างเดิมกลับมาแก้ไขเรียบร้อยแล้ว!");
+            } catch (e) {
+                alert("เกิดข้อผิดพลาดในการโหลดร่างที่บันทึกไว้");
+            }
         }
 
-        function generateFullHTML() {
+        // Generate Code String
+        function generateHTMLCodeString() {
+            const containerBg = document.getElementById('hexContainerBg').value;
+            const headerBg = document.getElementById('hexHeaderBg').value;
+            const headerTextColor = document.getElementById('hexHeaderTextColor').value;
             const showHeaderImg = document.getElementById('headerShowImg').checked;
-            const headerImg = document.getElementById('headerImgUrl').value || 'https://picsum.photos/700/250?random=header';
-            const headerImgHeight = document.getElementById('headerImgHeight').value || 240;
-            const headerImgShape = document.getElementById('headerImgShape').value || '6px';
-
+            const headerImgUrl = document.getElementById('headerImgUrl').value;
+            const headerImgHeight = document.getElementById('headerImgHeight').value;
+            const headerImgShape = document.getElementById('headerImgShape').value;
             const headerTitle = document.getElementById('headerTitle').value;
+            const headerTitleSize = document.getElementById('headerTitleSize').value;
             const headerDesc = document.getElementById('headerDesc').value;
-            const footerOrg = document.getElementById('footerOrg').value;
-            const linksRaw = document.getElementById('footerLinks').value;
+            const headerDescSize = document.getElementById('headerDescSize').value;
 
-            const headerTitleSize = document.getElementById('headerTitleSize').value || 24;
-            const headerDescSize = document.getElementById('headerDescSize').value || 15;
-            const cardTitleSize = document.getElementById('cardTitleSize').value || 16;
-            const cardDescSize = document.getElementById('cardDescSize').value || 13;
-            
-            const cardBtnFontSize = document.getElementById('cardBtnFontSize').value || 12;
-            const cardBtnPadding = document.getElementById('cardBtnPadding').value || 8;
+            const bodyBg = document.getElementById('hexBodyBg').value;
+            const cardBg = document.getElementById('hexCardBgColor').value;
+            const bodyTextColor = document.getElementById('hexBodyTextColor').value;
+            const cardTitleSize = document.getElementById('cardTitleSize').value;
+            const cardDescSize = document.getElementById('cardDescSize').value;
+            const cardImgHeight = document.getElementById('cardImgHeight').value;
+            const cardImgShape = document.getElementById('cardImgShape').value;
+            const btnBg = document.getElementById('hexBtnBg').value;
+            const btnTextColor = document.getElementById('hexBtnTextColor').value;
 
-            const footerTextSize = document.getElementById('footerTextSize').value || 13;
-            const footerCopyrightSize = document.getElementById('footerCopyrightSize').value || 11;
-
-            const showBodyImg = document.getElementById('bodyShowImg').checked;
-            const cardImgHeight = document.getElementById('cardImgHeight').value || 140;
-            const cardImgShape = document.getElementById('cardImgShape').value || '0px';
-
-            // Extra section data
             const showExtra = document.getElementById('showExtraSection').checked;
-            const extraText = document.getElementById('extraText').value;
-            const extraTextColor = document.getElementById('hexExtraTextColor').value || '#09090b';
-            const extraTextSize = document.getElementById('extraTextSize').value || 14;
+            const extraBg = document.getElementById('hexExtraBg').value;
+            const extraTextColor = document.getElementById('hexExtraTextColor').value;
+            const extraTitle = document.getElementById('extraTitle').value;
+            const extraTitleSize = document.getElementById('extraTitleSize').value;
+            const extraDesc = document.getElementById('extraDesc').value;
+            const extraDescSize = document.getElementById('extraDescSize').value;
+            
             const showExtraBtn = document.getElementById('showExtraBtn').checked;
             const extraBtnText = document.getElementById('extraBtnText').value;
             const extraBtnUrl = document.getElementById('extraBtnUrl').value;
-            const extraBtnBg = document.getElementById('hexExtraBtnBg').value || '#18181b';
-            const extraBtnTextColor = document.getElementById('hexExtraBtnTextColor').value || '#ffffff';
-            const extraBtnFontSize = document.getElementById('extraBtnFontSize').value || 13;
-            const extraBtnPadding = document.getElementById('extraBtnPadding').value || 10;
 
-            let linksHtml = '';
-            if (linksRaw) {
-                const linkItems = linksRaw.split(',');
-                linksHtml = linkItems.map(item => {
-                    const [text, url] = item.split('|');
-                    return url ? `<a href="${url.trim()}" target="_blank" style="color: ${activeScheme.footerText}; font-size: ${footerTextSize}px; text-decoration: underline; margin: 0 4px;">${text ? text.trim() : url.trim()}</a>` : '';
-                }).join(' | ');
-            }
+            const footerBg = document.getElementById('hexFooterBg').value;
+            const footerTextColor = document.getElementById('hexFooterTextColor').value;
+            const footerText = document.getElementById('footerText').value;
+            const footerCopyright = document.getElementById('footerCopyright').value;
+            const footerLinksInput = document.getElementById('footerLinksInput').value;
 
-            const colWidth = Math.floor(100 / currentColumns);
-            let rowsHtml = '';
+            let cardsHTML = '';
+            cards.forEach(card => {
+                let imgCode = card.img ? `<img src="${card.img}" style="width:100%; height:${cardImgHeight}px; object-fit:cover; display:block; border-radius:${cardImgShape} ${cardImgShape} 0 0;" alt="Image">` : '';
+                let btnCode = card.btnText ? `<div style="margin-top:12px;"><span style="display:inline-block; background:${btnBg}; color:${btnTextColor}; padding:8px 16px; border-radius:4px; font-weight:500; font-size:13px; text-decoration:none;">${card.btnText}</span></div>` : '';
 
-            for (let i = 0; i < cards.length; i += currentColumns) {
-                let cellsHtml = '';
-                for (let j = 0; j < currentColumns; j++) {
-                    const cardIndex = i + j;
-                    if (cardIndex < cards.length) {
-                        const card = cards[cardIndex];
-                        let cardImgStyle = `width: 100%; height: ${cardImgHeight}px; object-fit: cover; display: block; border-radius: ${cardImgShape};`;
-                        if (cardImgShape === '50%') cardImgStyle += ` width: ${cardImgHeight}px; margin: 10px auto 0;`;
+                cardsHTML += `
+                <!-- Card Item -->
+                <div style="margin-bottom:16px;">
+                    <a href="${card.link || '#'}" style="text-decoration:none; color:inherit; display:block;">
+                        <div style="background:${cardBg}; border:1px solid #e4e4e7; border-radius:6px; overflow:hidden;">
+                            ${imgCode}
+                            <div style="padding:16px; color:${bodyTextColor};">
+                                <h3 style="margin:0 0 8px 0; font-size:${cardTitleSize}px; font-weight:600;">${card.title}</h3>
+                                <p style="margin:0; font-size:${cardDescSize}px; line-height:1.5;">${card.desc}</p>
+                                ${btnCode}
+                            </div>
+                        </div>
+                    </a>
+                </div>`;
+            });
 
-                        cellsHtml += `
-                        <td width="${colWidth}%" valign="top" style="padding: 8px;">
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${activeScheme.cardBg || '#fafafa'}; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; text-align: ${bodyAlign};">
-                                ${showBodyImg && card.img ? `<tr><td style="padding: 0; text-align: center;"><img src="${card.img}" style="${cardImgStyle}" alt="Card Image"></td></tr>` : ''}
-                                <tr>
-                                    <td style="padding: 16px;">
-                                        <h3 style="margin: 0 0 8px 0; font-size: ${cardTitleSize}px; font-weight: 600; color: ${activeScheme.cardTitle};">${card.title}</h3>
-                                        <p style="margin: 0 0 14px 0; font-size: ${cardDescSize}px; color: ${activeScheme.cardDesc}; line-height: 1.5;">${card.desc}</p>
-                                        ${card.url ? `
-                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                            <tr>
-                                                <td align="${cardBtnAlign}">
-                                                    <table border="0" cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td align="center" style="border-radius: 4px; background: ${activeScheme.btnBg};">
-                                                                <a href="${card.url}" target="_blank" style="display: inline-block; padding: ${cardBtnPadding}px ${parseInt(cardBtnPadding)*1.8}px; font-size: ${cardBtnFontSize}px; font-weight: 500; color: ${activeScheme.btnText || '#ffffff'}; text-decoration: none;">${card.btnText || 'อ่านเพิ่มเติม'}</a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>` : ''}
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>`;
-                    } else {
-                        cellsHtml += `<td width="${colWidth}%" style="padding: 8px;"></td>`;
-                    }
-                }
-                rowsHtml += `<tr>${cellsHtml}</tr>`;
-            }
-
-            let extraSectionHtml = '';
+            let extraHTML = '';
             if (showExtra) {
-                extraSectionHtml = `
-                    <!-- Extra Special Section -->
-                    <tr>
-                        <td style="background-color: ${activeScheme.extraBg || '#ffffff'}; padding: 20px 24px; border-top: 1px solid #e4e4e7; text-align: ${extraAlign};">
-                            <div style="font-size: ${extraTextSize}px; color: ${extraTextColor}; line-height: 1.6;">${extraText}</div>
-                            ${showExtraBtn && extraBtnUrl ? `
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 16px;">
-                                <tr>
-                                    <td align="${extraBtnAlign}">
-                                        <table border="0" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td align="center" style="border-radius: 6px; background: ${extraBtnBg};">
-                                                    <a href="${extraBtnUrl}" target="_blank" style="display: inline-block; padding: ${extraBtnPadding}px ${parseInt(extraBtnPadding)*2}px; font-size: ${extraBtnFontSize}px; font-weight: 500; color: ${extraBtnTextColor}; text-decoration: none;">${extraBtnText}</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>` : ''}
-                        </td>
-                    </tr>`;
+                let extraBtnHTML = '';
+                if (showExtraBtn && extraBtnText) {
+                    extraBtnHTML = `
+                    <div style="margin-top:16px;">
+                        <a href="${extraBtnUrl || '#'}" style="display:inline-block; background:${btnBg}; color:${btnTextColor}; padding:10px 20px; text-decoration:none; border-radius:4px; font-weight:500; font-size:14px;">${extraBtnText}</a>
+                    </div>`;
+                }
+
+                extraHTML = `
+                <!-- Section 3 Announcement -->
+                <tr>
+                    <td style="padding:24px; background:${extraBg}; color:${extraTextColor}; text-align:${extraAlign}; border-top:1px solid #e4e4e7;">
+                        <h3 style="margin:0 0 8px 0; font-size:${extraTitleSize}px; font-weight:600;">${extraTitle}</h3>
+                        <p style="margin:0; font-size:${extraDescSize}px; line-height:1.6;">${extraDesc}</p>
+                        ${extraBtnHTML}
+                    </td>
+                </tr>`;
             }
 
-            let headerImgStyle = `max-width: 100%; height: ${headerImgHeight}px; object-fit: cover; border-radius: ${headerImgShape}; margin-bottom: 20px; display: inline-block;`;
-            if (headerImgShape === '50%') headerImgStyle += ` width: ${headerImgHeight}px;`;
+            let footerLinksHTML = '';
+            if (footerLinksInput.trim() !== '') {
+                const linksArray = footerLinksInput.split(',');
+                const linkItems = linksArray.map(item => {
+                    const parts = item.split('|');
+                    const label = parts[0] ? parts[0].trim() : 'ลิงก์';
+                    const url = parts[1] ? parts[1].trim() : '#';
+                    return `<a href="${url}" target="_blank" style="color:${footerTextColor}; text-decoration:underline; margin:0 4px;">${label}</a>`;
+                });
+                footerLinksHTML = `<div style="margin-bottom:8px; font-size:13px;">${linkItems.join(' | ')}</div>`;
+            }
 
-            return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="th">
+            return `<!DOCTYPE html>
+<html lang="th">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>${headerTitle}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Newsletter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f4f5; font-family: 'Prompt', sans-serif; }
+        table { border-collapse: collapse; }
+        @media only screen and (max-width: 620px) {
+            .email-container { width: 100% !important; }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: 'Prompt', 'Sarabun', Arial, sans-serif;">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f5; padding: 30px 0; table-layout: fixed;">
-        <tr>
-            <td align="center">
-                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 650px; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e4e4e7;">
-                    <!-- Header -->
-                    <tr>
-                        <td style="background: ${activeScheme.headerBg}; color: ${activeScheme.headerText}; padding: 32px 24px; text-align: ${headerAlign};">
-                            ${showHeaderImg && headerImg ? `<img src="${headerImg}" style="${headerImgStyle}" alt="Header">` : ''}
-                            <h1 style="margin: 0 0 10px 0; font-size: ${headerTitleSize}px; font-weight: 600; color: ${activeScheme.headerText}; line-height: 1.3;">${headerTitle}</h1>
-                            <p style="margin: 0; font-size: ${headerDescSize}px; opacity: 0.85; color: ${activeScheme.headerText}; line-height: 1.6;">${headerDesc}</p>
-                        </td>
-                    </tr>
-                    <!-- Content Body -->
-                    <tr>
-                        <td style="background-color: ${activeScheme.bodyBg || '#ffffff'}; padding: 16px 16px 24px 16px;">
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                ${rowsHtml}
-                            </table>
-                        </td>
-                    </tr>
-                    ${extraSectionHtml}
-                    <!-- Footer -->
-                    <tr>
-                        <td align="center" style="background: ${activeScheme.headerBg}; color: ${activeScheme.footerText}; padding: 24px; font-size: ${footerTextSize}px; border-top: 1px solid #e4e4e7; text-align: ${footerAlign};">
-                            <p style="margin: 0 0 8px 0; font-weight: 600; color: ${activeScheme.footerText}; font-size: ${footerTextSize}px;">${footerOrg}</p>
-                            <div style="margin-bottom: 12px;">${linksHtml}</div>
-                            <div style="font-size: ${footerCopyrightSize}px; opacity: 0.6; color: ${activeScheme.footerText};">© 2026 Library and Learning Space. All rights reserved.</div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+<body style="margin:0; padding:20px 0; background-color:#f4f4f5;">
+    <center>
+        <table role="presentation" class="email-container" width="600" style="margin:0 auto; background:${containerBg}; border-radius:8px; border:1px solid #e4e4e7; overflow:hidden;">
+            <!-- Section 1 Header -->
+            <tr>
+                <td style="padding:32px 24px; background:${headerBg}; color:${headerTextColor}; text-align:${headerAlign};">
+                    ${showHeaderImg && headerImgUrl ? `<div style="margin-bottom:20px;"><img src="${headerImgUrl}" style="width:100%; height:${headerImgHeight}px; object-fit:cover; border-radius:${headerImgShape}; display:block;" alt="Header"></div>` : ''}
+                    <h1 style="margin:0 0 10px 0; font-size:${headerTitleSize}px; font-weight:600; line-height:1.3;">${headerTitle}</h1>
+                    <p style="margin:0; font-size:${headerDescSize}px; line-height:1.6; opacity:0.9;">${headerDesc}</p>
+                </td>
+            </tr>
+
+            <!-- Section 2 Content Cards -->
+            <tr>
+                <td style="padding:24px; background:${bodyBg};">
+                    ${cardsHTML}
+                </td>
+            </tr>
+
+            ${extraHTML}
+
+            <!-- Section 4 Footer -->
+            <tr>
+                <td style="padding:24px; background:${footerBg}; color:${footerTextColor}; text-align:${footerAlign}; border-top:1px solid #e4e4e7;">
+                    <p style="margin:0 0 10px 0; font-size:13px; line-height:1.5;">${footerText}</p>
+                    ${footerLinksHTML}
+                    <div style="margin-top:12px; font-size:12px; opacity:0.7;">${footerCopyright}</div>
+                </td>
+            </tr>
+        </table>
+    </center>
 </body>
 </html>`;
         }
 
-        function showHtmlModal() {
-            document.getElementById('htmlCodeOutput').value = generateFullHTML();
-            document.getElementById('htmlModal').classList.add('active');
+        // Export Production Ready Clean HTML Code
+        function exportHTML() {
+            const fullCode = generateHTMLCodeString();
+            document.getElementById('htmlOutputCode').value = fullCode;
+            document.getElementById('exportModal').classList.add('active');
         }
 
-        function closeHtmlModal() {
-            document.getElementById('htmlModal').classList.remove('active');
+        // Download File .HTML
+        function downloadHTMLFile() {
+            const code = generateHTMLCodeString();
+            const blob = new Blob([code], { type: 'text/html;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'email-newsletter.html');
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("ดาวน์โหลดไฟล์ HTML เรียบร้อยแล้ว!");
         }
 
-        function copyToClipboard() {
-            const textarea = document.getElementById('htmlCodeOutput');
+        function closeModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function copyHTMLCode() {
+            const textarea = document.getElementById('htmlOutputCode');
             textarea.select();
             document.execCommand('copy');
-            alert('คัดลอกโค้ด HTML เรียบร้อยแล้ว!');
+            showToast("คัดลอกรหัส HTML สำเร็จแล้ว!");
         }
 
-        function downloadHtml() {
-            const content = generateFullHTML();
-            const blob = new Blob([content], { type: 'text/html' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'email-template-minimal.html';
-            link.click();
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
         }
     </script>
 </body>
